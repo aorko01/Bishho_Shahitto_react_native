@@ -1,78 +1,127 @@
-import React, {useState} from 'react';
+import React from 'react';
 import {
   SafeAreaView,
-  View,
+  ScrollView,
+  StyleSheet,
   Text,
+  View,
   TextInput,
   TouchableOpacity,
-  StyleSheet,
+  Alert,
 } from 'react-native';
-// Import Axios
+import {Formik} from 'formik';
+import * as Yup from 'yup';
+import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+API_URI = 'http://10.0.2.2:8000/api/v1';
 
-const Login = ({navigation}) => {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+const userSchema = Yup.object().shape({
+  username: Yup.string().required().label('Username'),
+  password: Yup.string().required().label('Password'),
+});
 
-  const handleLogin = async () => {
+const Login = () => {
+  const handleLogin = async values => {
+    console.log(API_URI);
+    console.log(values.username);
+    console.log(values.password);
+
     try {
-      // console.log('Login successful!', email, password)
-      const response = await fetch('http://10.0.2.2:8000/api/v1/users/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          username,
-          password,
-        }),
+      const response = await axios.post(`${API_URI}/users/login`, {
+        username: values.username,
+        password: values.password,
       });
-      console.log('Login successful!', response);
-      // Navigate to another screen after successful login
-      // navigation.navigate('Home');
+
+      const {accessToken, refreshToken, user} = response.data.data;
+
+      await AsyncStorage.setItem('accessToken', accessToken);
+      await AsyncStorage.setItem('refreshToken', refreshToken);
+
+      await AsyncStorage.setItem('user', JSON.stringify(user));
+
+      console.log('Login successful');
+
     } catch (error) {
-      console.error('Login failed!', error);
-      // Handle error - e.g., show error message to the user
+      console.error('Error logging in:', error);
+      Alert.alert('Error', 'Failed to log in. Please try again.');
     }
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <View style={styles.container}>
-        <Text style={styles.title}>Login</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Username"
-          value={username}
-          onChangeText={setUsername}
-          keyboardType="email-address"
-          autoCapitalize="none"
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Password"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-        />
-        <TouchableOpacity style={styles.button} onPress={handleLogin}>
-          <Text style={styles.buttonText}>Login</Text>
-        </TouchableOpacity>
-      </View>
-    </SafeAreaView>
+    <ScrollView
+      contentContainerStyle={styles.scrollView}
+      keyboardShouldPersistTaps="handled">
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.container}>
+          <Formik
+            initialValues={{username: '', password: ''}}
+            validationSchema={userSchema}
+            onSubmit={handleLogin}>
+            {({
+              values,
+              errors,
+              touched,
+              isValid,
+              handleChange,
+              handleBlur,
+              handleSubmit,
+              handleReset,
+            }) => (
+              <View>
+                <Text style={styles.title}>Login</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Username"
+                  value={values.username}
+                  onChangeText={handleChange('username')}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                />
+                <TextInput
+                  style={styles.input}
+                  placeholder="Password"
+                  value={values.password}
+                  onChangeText={handleChange('password')}
+                  secureTextEntry
+                />
+                <TouchableOpacity
+                  style={[
+                    styles.button,
+                    {backgroundColor: '#0f52ba', marginBottom: 16},
+                  ]}
+                  onPress={handleSubmit}>
+                  <Text style={styles.buttonText}>Login</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[styles.button, {backgroundColor: '#6c757d'}]}
+                  onPress={() => console.log('Navigate to register screen')}>
+                  <Text style={styles.buttonText}>Register</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          </Formik>
+        </View>
+      </SafeAreaView>
+    </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
+  scrollView: {
+    flexGrow: 1,
+    height: '100%',
+    backgroundColor: '#000000',
+  },
   safeArea: {
     flex: 1,
-    backgroundColor: '#000000',
   },
   container: {
     flex: 1,
     flexDirection: 'column',
     alignContent: 'center',
+    justifyContent: 'center',
     padding: 16,
-    paddingTop: 350,
   },
   title: {
     fontSize: 24,
@@ -92,7 +141,6 @@ const styles = StyleSheet.create({
   },
   button: {
     height: 40,
-    backgroundColor: '#007BFF',
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 20,
