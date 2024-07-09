@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Image,
   SafeAreaView,
@@ -8,19 +8,52 @@ import {
   TextInput,
   View,
   TouchableOpacity,
+  ActivityIndicator,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useNavigation } from '@react-navigation/native';
+import axiosInstance from './axiosInstance'; // Import the axios instance
 
 export default function Home() {
   const navigation = useNavigation();
 
-  const coverImages = [
-    'https://m.media-amazon.com/images/I/81YkqyaFVEL._AC_UF1000,1000_QL80_.jpg',
-    'https://m.media-amazon.com/images/I/81YkqyaFVEL._AC_UF1000,1000_QL80_.jpg',
-    'https://m.media-amazon.com/images/I/81YkqyaFVEL._AC_UF1000,1000_QL80_.jpg',
-    'https://m.media-amazon.com/images/I/81YkqyaFVEL._AC_UF1000,1000_QL80_.jpg'
-  ];
+  const [topPicks, setTopPicks] = useState([]);
+  const [trending, setTrending] = useState([]);
+  const [popularGenre, setPopularGenre] = useState([]);
+  const [recentBorrows, setRecentBorrows] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchCoverImages = async () => {
+      try {
+        const [topPicksResponse, trendingResponse, popularGenreResponse, recentBorrowsResponse] = await Promise.all([
+          axiosInstance.get('/top-picks'),
+          axiosInstance.get('/trending'),
+          axiosInstance.get('/popular-genre'),
+          axiosInstance.get('/recent-borrows')
+        ]);
+
+        setTopPicks(topPicksResponse.data);
+        setTrending(trendingResponse.data);
+        setPopularGenre(popularGenreResponse.data);
+        setRecentBorrows(recentBorrowsResponse.data);
+        setLoading(false);
+      } catch (error) {
+        console.error(error);
+        setLoading(false);
+      }
+    };
+
+    fetchCoverImages();
+  }, []);
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <ActivityIndicator size="large" color="#ffffff" />
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -50,11 +83,11 @@ export default function Home() {
             </TouchableOpacity>
           </View>
           <ScrollView horizontal={true} style={styles.horizontalScroll}>
-            {coverImages.map((image, idx) => (
+            {topPicks.map((image, idx) => (
               <Image
                 key={idx}
                 source={{ uri: image }}
-                style={styles.bookCoverTrending}
+                style={styles.bookCover}
               />
             ))}
           </ScrollView>
@@ -69,7 +102,7 @@ export default function Home() {
             </TouchableOpacity>
           </View>
           <ScrollView horizontal={true} style={styles.horizontalScroll}>
-            {coverImages.map((image, idx) => (
+            {trending.map((image, idx) => (
               <Image
                 key={idx}
                 source={{ uri: image }}
@@ -88,7 +121,7 @@ export default function Home() {
             </TouchableOpacity>
           </View>
           <ScrollView horizontal={true} style={styles.horizontalScroll}>
-            {coverImages.map((image, idx) => (
+            {popularGenre.map((image, idx) => (
               <Image
                 key={idx}
                 source={{ uri: image }}
@@ -107,7 +140,7 @@ export default function Home() {
             </TouchableOpacity>
           </View>
           <ScrollView horizontal={true} style={styles.horizontalScroll}>
-            {coverImages.map((image, idx) => (
+            {recentBorrows.map((image, idx) => (
               <Image
                 key={idx}
                 source={{ uri: image }}
@@ -129,21 +162,25 @@ const styles = StyleSheet.create({
   },
   sectionContainer1: {
     marginBottom: 30,
+    backgroundColor: '#2a2b3c', // Different background color
     padding: 10,
     borderRadius: 10,
   },
   sectionContainer2: {
     marginBottom: 30,
+    backgroundColor: '#3a3b4c', // Different background color
     padding: 10,
     borderRadius: 10,
   },
   sectionContainer3: {
     marginBottom: 30,
+    backgroundColor: '#4a4b5c', // Different background color
     padding: 10,
     borderRadius: 10,
   },
   sectionContainer4: {
     marginBottom: 30,
+    backgroundColor: '#5a5b6c', // Different background color
     padding: 10,
     borderRadius: 10,
   },
@@ -200,12 +237,6 @@ const styles = StyleSheet.create({
   bookCover: {
     width: 100,
     height: 150,
-    borderRadius: 10,
-    marginRight: 20,
-  },
-  bookCoverTrending: {
-    width: 125,
-    height: 190,
     borderRadius: 10,
     marginRight: 20,
   },

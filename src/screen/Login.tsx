@@ -41,7 +41,7 @@ const Login = () => {
       await AsyncStorage.setItem('user', JSON.stringify(user));
 
       console.log('Login successful');
-      navigation.navigate('Home'); // Navigate to the Home screen
+      navigation.navigate('Main'); // Navigate to the Home screen
     } catch (error) {
       console.error('Error logging in:', error);
       Alert.alert('Error', 'Failed to log in. Please try again.');
