@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   Image,
   SafeAreaView,
@@ -8,18 +8,37 @@ import {
   TextInput,
   View,
   TouchableOpacity,
+  ActivityIndicator,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { useNavigation } from '@react-navigation/native';
+import {useNavigation} from '@react-navigation/native';
+import axiosInstance from '../utils/axiosInstance.js';
 
 export default function Home() {
   const navigation = useNavigation();
+  const [topPicks, setTopPicks] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchTopPicks();
+  }, []);
+
+  const fetchTopPicks = async () => {
+    try {
+      const response = await axiosInstance.get('/books/get-trending-books'); // Adjust endpoint as per your backend route
+      setTopPicks(response.data.data);
+      setLoading(false);
+    } catch (error) {
+      console.error('Error fetching top picks:', error);
+      setLoading(false);
+    }
+  };
 
   const coverImages = [
     'https://m.media-amazon.com/images/I/81YkqyaFVEL._AC_UF1000,1000_QL80_.jpg',
     'https://m.media-amazon.com/images/I/81YkqyaFVEL._AC_UF1000,1000_QL80_.jpg',
     'https://m.media-amazon.com/images/I/81YkqyaFVEL._AC_UF1000,1000_QL80_.jpg',
-    'https://m.media-amazon.com/images/I/81YkqyaFVEL._AC_UF1000,1000_QL80_.jpg'
+    'https://m.media-amazon.com/images/I/81YkqyaFVEL._AC_UF1000,1000_QL80_.jpg',
   ];
 
   return (
@@ -45,18 +64,27 @@ export default function Home() {
         <View style={styles.sectionContainer1}>
           <View style={styles.TrendingContainer}>
             <Text style={styles.Heading}>Top Picks for you</Text>
-            <TouchableOpacity>
+            <TouchableOpacity onPress={() => navigation.navigate('TopPicks')}>
               <Text style={styles.all}>See all</Text>
             </TouchableOpacity>
           </View>
           <ScrollView horizontal={true} style={styles.horizontalScroll}>
-            {coverImages.map((image, idx) => (
-              <Image
-                key={idx}
-                source={{ uri: image }}
-                style={styles.bookCoverTrending}
-              />
-            ))}
+            {loading ? (
+              <ActivityIndicator size="large" color="#fff" />
+            ) : (
+              topPicks.map((book, idx) => (
+                <TouchableOpacity
+                  key={idx}
+                  onPress={() =>
+                    navigation.navigate('BookDetails', {bookId: book._id})
+                  }>
+                  <Image
+                    source={{uri: book.coverImage}}
+                    style={styles.bookCoverTrending}
+                  />
+                </TouchableOpacity>
+              ))
+            )}
           </ScrollView>
         </View>
 
@@ -70,11 +98,7 @@ export default function Home() {
           </View>
           <ScrollView horizontal={true} style={styles.horizontalScroll}>
             {coverImages.map((image, idx) => (
-              <Image
-                key={idx}
-                source={{ uri: image }}
-                style={styles.bookCover}
-              />
+              <Image key={idx} source={{uri: image}} style={styles.bookCover} />
             ))}
           </ScrollView>
         </View>
@@ -89,11 +113,7 @@ export default function Home() {
           </View>
           <ScrollView horizontal={true} style={styles.horizontalScroll}>
             {coverImages.map((image, idx) => (
-              <Image
-                key={idx}
-                source={{ uri: image }}
-                style={styles.bookCover}
-              />
+              <Image key={idx} source={{uri: image}} style={styles.bookCover} />
             ))}
           </ScrollView>
         </View>
@@ -108,15 +128,10 @@ export default function Home() {
           </View>
           <ScrollView horizontal={true} style={styles.horizontalScroll}>
             {coverImages.map((image, idx) => (
-              <Image
-                key={idx}
-                source={{ uri: image }}
-                style={styles.bookCover}
-              />
+              <Image key={idx} source={{uri: image}} style={styles.bookCover} />
             ))}
           </ScrollView>
         </View>
-        
       </ScrollView>
     </SafeAreaView>
   );
