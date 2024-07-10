@@ -77,7 +77,7 @@ export default function Home() {
                 <TouchableOpacity
                   key={idx}
                   onPress={() =>
-                    navigation.push('IndividualBook', {bookId: book._id})
+                    navigation.push('IndividualBook', {book})
                   }>
                   <Image
                     source={{uri: book.coverImage}}

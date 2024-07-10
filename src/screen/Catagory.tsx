@@ -73,7 +73,7 @@ export default function Category() {
         <Text style={styles.HeadText}>{category}</Text>
 
         {books.map((book, index) => (
-          <TouchableOpacity key={index} onPress={() => navigation.push('IndividualBook', { bookId: book._id })}>
+          <TouchableOpacity key={index} onPress={() => navigation.push('IndividualBook', { book })}>
           <View key={index} style={styles.bookContainer}>
             <View>
               <Image
@@ -87,10 +87,10 @@ export default function Category() {
               <Text style={{ color: 'white', fontSize: 20 }}>
                 {book.title}
               </Text>
-              <Text style={{ color: '#888', fontSize: 15 }}>
+              <Text style={{fontSize: 15 }}>
                 {book.author}
               </Text>
-              <Text style={{ color: '#888', fontSize: 15, marginTop: 30 }}>
+              <Text style={{fontSize: 15, marginTop: 30 }}>
                 Rating: {book.totalRating}
               </Text>
             </View>
