@@ -14,6 +14,7 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import {useNavigation} from '@react-navigation/native';
 import axiosInstance from '../utils/axiosInstance.js';
 
+
 export default function Home() {
   const navigation = useNavigation();
   const [topPicks, setTopPicks] = useState([]);
@@ -64,7 +65,7 @@ export default function Home() {
         <View style={styles.sectionContainer1}>
           <View style={styles.TrendingContainer}>
             <Text style={styles.Heading}>Top Picks for you</Text>
-            <TouchableOpacity onPress={() => navigation.navigate('TopPicks')}>
+            <TouchableOpacity onPress={() => navigation.push('Catagory', { category: "Top picks" })}>
               <Text style={styles.all}>See all</Text>
             </TouchableOpacity>
           </View>
@@ -76,7 +77,7 @@ export default function Home() {
                 <TouchableOpacity
                   key={idx}
                   onPress={() =>
-                    navigation.navigate('BookDetails', {bookId: book._id})
+                    navigation.push('IndividualBook', {bookId: book._id})
                   }>
                   <Image
                     source={{uri: book.coverImage}}
