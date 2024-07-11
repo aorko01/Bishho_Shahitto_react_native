@@ -21,6 +21,13 @@ const userRatings = [
   { id: 5, avatar: 'https://randomuser.me/api/portraits/men/5.jpg', name: 'Sophia Williams', stars: 5 },
 ];
 
+// Dummy data for user reviews
+const userReviews = [
+  { id: 1, avatar: 'https://randomuser.me/api/portraits/men/6.jpg', name: 'Michael Scott', review: 'Amazing book! A must-read for everyone.The part of fucking in the pussy was just so juicy that i could not refrain myself from masterbating' },
+  { id: 2, avatar: 'https://randomuser.me/api/portraits/women/7.jpg', name: 'Pam Beesly', review: 'Loved the story and characters. Highly recommended.' },
+  { id: 3, avatar: 'https://randomuser.me/api/portraits/men/8.jpg', name: 'Jim Halpert', review: 'Interesting plot but could have been shorter.' },
+];
+
 export default function IndividualBook() {
   const navigation = useNavigation();
   const route = useRoute();
@@ -77,6 +84,24 @@ export default function IndividualBook() {
                   <Icon key={index} name="star" size={18} color="#f8c104" />
                 ))}
               </View>
+            </View>
+          </View>
+        ))}
+      </View>
+    );
+  };
+
+  // Render user reviews section
+  const renderUserReviews = () => {
+    return (
+      <View style={styles.userReviews}>
+        <Text style={styles.reviewTitle}>User Reviews</Text>
+        {userReviews.map((review) => (
+          <View key={review.id} style={styles.userReview}>
+            <Image source={{ uri: review.avatar }} style={styles.reviewAvatar} />
+            <View style={styles.reviewInfo}>
+              <Text style={styles.reviewName}>{review.name}</Text>
+              <Text style={styles.reviewText}>{review.review}</Text>
             </View>
           </View>
         ))}
@@ -145,6 +170,11 @@ export default function IndividualBook() {
         {/* Render the rating section */}
         <View style={styles.ratingSection}>
           {renderUserRatings()}
+        </View>
+
+        {/* Render the review section */}
+        <View style={styles.reviewSection}>
+          {renderUserReviews()}
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -323,5 +353,41 @@ const styles = StyleSheet.create({
   },
   userStars: {
     flexDirection: 'row',
+  },
+  reviewSection: {
+    padding: 20,
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    marginBottom: 20,
+  },
+  reviewTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: 'black',
+    marginBottom: 10,
+  },
+  userReviews: {
+    marginTop: 20,
+  },
+  userReview: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  reviewAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    marginRight: 10,
+  },
+  reviewInfo: {
+    flex: 1,
+  },
+  reviewName: {
+    fontWeight: 'bold',
+    color: 'black',
+  },
+  reviewText: {
+    color: 'black',
   },
 });

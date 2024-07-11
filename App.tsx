@@ -4,6 +4,7 @@ import Register from './src/screen/Register';
 import BottomNavigation from './src/navigation/BottomNavigation';
 import Catagory from './src/screen/Catagory';
 import IndividualBook from './src/screen/IndividualBook';
+import Search from './src/screen/Search';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 

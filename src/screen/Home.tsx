@@ -1,19 +1,17 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Image,
   SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   View,
   TouchableOpacity,
   ActivityIndicator,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import {useNavigation} from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import axiosInstance from '../utils/axiosInstance.js';
-
 
 export default function Home() {
   const navigation = useNavigation();
@@ -55,17 +53,19 @@ export default function Home() {
           style={styles.avatar}
         />
         <Text style={styles.Hello}>Hello Ali!</Text>
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Search for Books"
-          placeholderTextColor="#888"
-        />
-
+        <TouchableOpacity
+          style={styles.searchTouchable}
+          onPress={() => navigation.navigate('Search')}
+        >
+          <View style={styles.searchFakeInput}>
+            <Text style={styles.searchPlaceholder}>Search for Books</Text>
+          </View>
+        </TouchableOpacity>
         {/* Section 1: Top Picks for you */}
         <View style={styles.sectionContainer1}>
           <View style={styles.TrendingContainer}>
             <Text style={styles.Heading}>Top Picks for you</Text>
-            <TouchableOpacity onPress={() => navigation.push('Catagory', { category: "Top picks" })}>
+            <TouchableOpacity onPress={() => navigation.push('Catagory', { category: 'Top picks' })}>
               <Text style={styles.all}>See all</Text>
             </TouchableOpacity>
           </View>
@@ -74,15 +74,8 @@ export default function Home() {
               <ActivityIndicator size="large" color="#fff" />
             ) : (
               topPicks.map((book, idx) => (
-                <TouchableOpacity
-                  key={idx}
-                  onPress={() =>
-                    navigation.push('IndividualBook', {book})
-                  }>
-                  <Image
-                    source={{uri: book.coverImage}}
-                    style={styles.bookCoverTrending}
-                  />
+                <TouchableOpacity key={idx} onPress={() => navigation.push('IndividualBook', { book })}>
+                  <Image source={{ uri: book.coverImage }} style={styles.bookCoverTrending} />
                 </TouchableOpacity>
               ))
             )}
@@ -99,7 +92,7 @@ export default function Home() {
           </View>
           <ScrollView horizontal={true} style={styles.horizontalScroll}>
             {coverImages.map((image, idx) => (
-              <Image key={idx} source={{uri: image}} style={styles.bookCover} />
+              <Image key={idx} source={{ uri: image }} style={styles.bookCover} />
             ))}
           </ScrollView>
         </View>
@@ -114,7 +107,7 @@ export default function Home() {
           </View>
           <ScrollView horizontal={true} style={styles.horizontalScroll}>
             {coverImages.map((image, idx) => (
-              <Image key={idx} source={{uri: image}} style={styles.bookCover} />
+              <Image key={idx} source={{ uri: image }} style={styles.bookCover} />
             ))}
           </ScrollView>
         </View>
@@ -129,7 +122,7 @@ export default function Home() {
           </View>
           <ScrollView horizontal={true} style={styles.horizontalScroll}>
             {coverImages.map((image, idx) => (
-              <Image key={idx} source={{uri: image}} style={styles.bookCover} />
+              <Image key={idx} source={{ uri: image }} style={styles.bookCover} />
             ))}
           </ScrollView>
         </View>
@@ -199,7 +192,7 @@ const styles = StyleSheet.create({
     marginTop: 25,
     marginLeft: 15,
   },
-  searchInput: {
+  searchTouchable: {
     height: 40,
     borderColor: 'gray',
     borderWidth: 1,
@@ -207,8 +200,16 @@ const styles = StyleSheet.create({
     marginTop: 30,
     marginLeft: 15,
     marginRight: 15,
-    paddingLeft: 10,
+    justifyContent: 'center',
     backgroundColor: '#3a3c51',
+  },
+  searchFakeInput: {
+    height: '100%',
+    justifyContent: 'center',
+    paddingLeft: 10,
+  },
+  searchPlaceholder: {
+    color: '#888',
   },
   horizontalScroll: {
     paddingLeft: 15,

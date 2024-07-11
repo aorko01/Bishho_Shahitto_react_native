@@ -13,10 +13,13 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import axiosInstance from '../utils/axiosInstance';
 
-export default function Category() {
+export default function Category(props) {
   const navigation = useNavigation();
   const route = useRoute();
-  const { category } = route.params;
+
+  const categoryFromRoute = route.params?.category;
+  const category = props.category || categoryFromRoute || 'Top picks'; // default category if none is provided
+
   let url = "";
   if (category === "Top picks") {
     url = '/books/get-trending-books';
