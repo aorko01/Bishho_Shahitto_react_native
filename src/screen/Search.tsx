@@ -1,10 +1,14 @@
-import React, { useRef, useState } from 'react';
-import { StyleSheet, Text, View, TextInput, Keyboard } from 'react-native';
+import React, { useRef, useState, useEffect } from 'react';
+import { StyleSheet, Text, View, TextInput, Keyboard, FlatList, Touchable, TouchableOpacity } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
+import axiosInstance from '../utils/axiosInstance';  // Adjust the import path as necessary
+import { useNavigation } from '@react-navigation/native';
 
 export default function Search() {
+  const navigation = useNavigation();
   const [query, setQuery] = useState('');
-  const [result, setResult] = useState(null);
+  const [result, setResult] = useState([]);
+  const [loading, setLoading] = useState(false);
   const searchInputRef = useRef(null);
 
   useFocusEffect(
@@ -15,10 +19,34 @@ export default function Search() {
     }, [])
   );
 
-  const handleSearch = () => {
-    setResult(`Results for "${query}"`);
-    Keyboard.dismiss();
+  useEffect(() => {
+    if (query) {
+      handleSearch();
+    } else {
+      setResult([]);
+    }
+  }, [query]);
+
+  const handleSearch = async () => {
+    setLoading(true);
+    try {
+      const response = await axiosInstance.post('/books/get-searched-books', { search: query });
+      setResult(response.data.data); // Assuming the data structure is { data: books }
+    } catch (error) {
+      console.error(error);
+      setResult([]);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const renderItem = ({ item }) => (
+    <View style={styles.resultItem}>
+      <TouchableOpacity onPress={() => navigation.navigate('IndividualBook', { book: item })}>
+      <Text style={styles.resultText}>{item.title}</Text>
+      </TouchableOpacity>
+    </View>
+  );
 
   return (
     <View style={styles.container}>
@@ -31,7 +59,13 @@ export default function Search() {
         onChangeText={setQuery}
         onSubmitEditing={handleSearch}
       />
-      {result && <Text style={styles.result}>{result}</Text>}
+      {loading && <Text style={styles.loading}>Loading...</Text>}
+      <FlatList
+        data={result}
+        keyExtractor={(item) => item._id.toString()}
+        renderItem={renderItem}
+        ListEmptyComponent={<Text style={styles.noResults}>No results found</Text>}
+      />
     </View>
   );
 }
@@ -52,9 +86,20 @@ const styles = StyleSheet.create({
     borderColor: 'gray',
     borderWidth: 1,
   },
-  result: {
-    marginTop: 20,
-    fontSize: 18,
+  loading: {
+    color: '#fff',
+    textAlign: 'center',
+  },
+  noResults: {
+    color: '#fff',
+    textAlign: 'center',
+  },
+  resultItem: {
+    padding: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#3a3c51',
+  },
+  resultText: {
     color: '#fff',
   },
 });

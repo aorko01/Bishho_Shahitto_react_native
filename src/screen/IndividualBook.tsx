@@ -23,7 +23,7 @@ const userRatings = [
 
 // Dummy data for user reviews
 const userReviews = [
-  { id: 1, avatar: 'https://randomuser.me/api/portraits/men/6.jpg', name: 'Michael Scott', review: 'Amazing book! A must-read for everyone.The part of fucking in the pussy was just so juicy that i could not refrain myself from masterbating' },
+  { id: 1, avatar: 'https://randomuser.me/api/portraits/men/6.jpg', name: 'Michael Scott', review: 'Amazing book! A must-read for everyone.The part of fucking in the pussy was just so juicy that i could not refrain myself from' },
   { id: 2, avatar: 'https://randomuser.me/api/portraits/women/7.jpg', name: 'Pam Beesly', review: 'Loved the story and characters. Highly recommended.' },
   { id: 3, avatar: 'https://randomuser.me/api/portraits/men/8.jpg', name: 'Jim Halpert', review: 'Interesting plot but could have been shorter.' },
 ];

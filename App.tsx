@@ -19,6 +19,7 @@ function App() {
         <Stack.Screen name="Main" component={BottomNavigation} />
         <Stack.Screen name="Catagory" component={Catagory} />
         <Stack.Screen name="IndividualBook" component={IndividualBook} />
+        <Stack.Screen name="Search" component={Search} />
       </Stack.Navigator>
     </NavigationContainer>
   );
