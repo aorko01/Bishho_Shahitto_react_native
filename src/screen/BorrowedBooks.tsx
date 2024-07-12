@@ -1,10 +1,10 @@
 import { StyleSheet, Text, View } from 'react-native'
 import React from 'react'
-import Category from './Catagory'
+import BorrowRequest from './BorrowRequest'
 
 export default function BorrowedBooks() {
   return (
-    <Category catagory={"Top picks"}/>
+    <BorrowRequest/>
   )
 }
 

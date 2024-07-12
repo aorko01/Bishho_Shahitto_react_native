@@ -5,6 +5,7 @@ import BottomNavigation from './src/navigation/BottomNavigation';
 import Catagory from './src/screen/Catagory';
 import IndividualBook from './src/screen/IndividualBook';
 import Search from './src/screen/Search';
+import BorrowRequest from './src/screen/BorrowRequest';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
@@ -20,6 +21,7 @@ function App() {
         <Stack.Screen name="Catagory" component={Catagory} />
         <Stack.Screen name="IndividualBook" component={IndividualBook} />
         <Stack.Screen name="Search" component={Search} />
+        <Stack.Screen name="BorrowRequest" component={BorrowRequest} />
       </Stack.Navigator>
     </NavigationContainer>
   );

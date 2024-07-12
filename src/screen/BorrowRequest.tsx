@@ -20,27 +20,24 @@ export default function Category(props) {
   const categoryFromRoute = route.params?.category;
   const category = props.category || categoryFromRoute || 'Top picks'; // default category if none is provided
 
-  let url = '';
-  if (category === 'Top picks') {
-    url = '/books/get-trending-books';
-  }
+  const url = '/books/get-previous-borrows';
 
   const [books, setBooks] = useState([]);
+  const [currentBorrowIds, setCurrentBorrowIds] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [page, setPage] = useState(1);
 
   useEffect(() => {
     fetchBooks();
   }, []);
 
   const fetchBooks = async () => {
-    if (loading) return;
     setLoading(true);
     try {
-      const response = await axiosInstance.get(`${url}?page=${page}`);
+      const response = await axiosInstance.get(url);
       if (response.data.success) {
-        setBooks(prevBooks => [...prevBooks, ...response.data.data]);
-        setPage(page + 1);
+        const { previousBorrows, currentBorrows } = response.data.data;
+        setBooks(previousBorrows);
+        setCurrentBorrowIds(currentBorrows.map(borrow => borrow.book._id));
       } else {
         console.error('Failed to fetch books:', response.data.message);
       }
@@ -51,21 +48,9 @@ export default function Category(props) {
     }
   };
 
-  const handleEndReached = () => {
-    fetchBooks();
-  };
-
-  const coverImages = books.map(book => book.coverImage);
-
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView
-        onScroll={({nativeEvent}) => {
-          if (isCloseToBottom(nativeEvent)) {
-            handleEndReached();
-          }
-        }}
-        scrollEventThrottle={400}>
+      <ScrollView>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <View style={styles.back}>
             <Icon name="arrow-back" size={30} color="white" />
@@ -84,7 +69,7 @@ export default function Category(props) {
               <View>
                 <Image
                   source={{
-                    uri: coverImages[index],
+                    uri: book.coverImage,
                   }}
                   style={styles.bookCover}
                 />
@@ -96,10 +81,16 @@ export default function Category(props) {
                   Rating: {book.totalRating}
                 </Text>
               </View>
-              <View style={{paddingVertical: 50, paddingRight: 5}}>
-                <TouchableOpacity>
-                  <Text style={{color: 'red'}}>Borrow</Text>
-                </TouchableOpacity>
+              <View style={styles.buttonContainer}>
+                {currentBorrowIds.includes(book._id) ? (
+                  <TouchableOpacity style={styles.returnButton}>
+                    <Text style={styles.buttonText}>Return</Text>
+                  </TouchableOpacity>
+                ) : (
+                  <View style={styles.returnedLabel}>
+                    <Text style={styles.labelText}>Returned</Text>
+                  </View>
+                )}
               </View>
             </View>
           </TouchableOpacity>
@@ -116,14 +107,6 @@ export default function Category(props) {
     </SafeAreaView>
   );
 }
-
-const isCloseToBottom = ({layoutMeasurement, contentOffset, contentSize}) => {
-  const paddingToBottom = 20;
-  return (
-    layoutMeasurement.height + contentOffset.y >=
-    contentSize.height - paddingToBottom
-  );
-};
 
 const styles = StyleSheet.create({
   container: {
@@ -154,9 +137,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     backgroundColor: '#3a3c51',
     justifyContent: 'space-between',
-    alignContent: 'center',
+    alignItems: 'center',
     paddingHorizontal: 20,
-    paddingVertical: 5,
+    paddingVertical: 10,
     margin: 20,
     borderRadius: 20,
     marginBottom: 30,
@@ -165,13 +148,33 @@ const styles = StyleSheet.create({
     width: 80,
     height: 120,
     borderRadius: 10,
-    position: 'relative',
-    top: -20,
-    shadowColor: 'black',
-    shadowOpacity: 1.5,
   },
   description: {
     flex: 1,
     marginLeft: 30,
+  },
+  buttonContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  returnButton: {
+    backgroundColor: 'red',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+  },
+  buttonText: {
+    color: 'white',
+    fontWeight: 'bold',
+  },
+  returnedLabel: {
+    backgroundColor: 'gray',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+  },
+  labelText: {
+    color: 'white',
+    fontWeight: 'bold',
   },
 });
