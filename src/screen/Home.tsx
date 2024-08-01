@@ -16,10 +16,13 @@ import axiosInstance from '../utils/axiosInstance.js';
 export default function Home() {
   const navigation = useNavigation();
   const [topPicks, setTopPicks] = useState([]);
+  const [previousBorrows, setPreviousBorrows] = useState([]);
+  const [currentBorrows, setCurrentBorrows] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchTopPicks();
+    fetchPreviousBorrows();
   }, []);
 
   const fetchTopPicks = async () => {
@@ -31,6 +34,24 @@ export default function Home() {
       console.error('Error fetching top picks:', error);
       setLoading(false);
     }
+  };
+
+  const fetchPreviousBorrows = async () => {
+    try {
+      const response = await axiosInstance.get('/books/get-previous-borrows'); // Adjust endpoint as per your backend route
+      setPreviousBorrows(response.data.data.previousBorrows);
+      setCurrentBorrows(response.data.data.currentBorrows);
+      setLoading(false);
+    } catch (error) {
+      console.error('Error fetching previous borrows:', error);
+      setLoading(false);
+    }
+  };
+
+  const isInCurrentBorrows = (bookId) => {
+    return currentBorrows.some(
+      (borrow) => borrow.book._id === bookId
+    );
   };
 
   const coverImages = [
@@ -55,8 +76,7 @@ export default function Home() {
         <Text style={styles.Hello}>Hello Ali!</Text>
         <TouchableOpacity
           style={styles.searchTouchable}
-          onPress={() => navigation.navigate('Search')}
-        >
+          onPress={() => navigation.navigate('Search')}>
           <View style={styles.searchFakeInput}>
             <Text style={styles.searchPlaceholder}>Search for Books</Text>
           </View>
@@ -65,7 +85,10 @@ export default function Home() {
         <View style={styles.sectionContainer1}>
           <View style={styles.TrendingContainer}>
             <Text style={styles.Heading}>Top Picks for you</Text>
-            <TouchableOpacity onPress={() => navigation.push('Catagory', { category: 'Top picks' })}>
+            <TouchableOpacity
+              onPress={() =>
+                navigation.push('Catagory', { category: 'Top picks' })
+              }>
               <Text style={styles.all}>See all</Text>
             </TouchableOpacity>
           </View>
@@ -74,8 +97,13 @@ export default function Home() {
               <ActivityIndicator size="large" color="#fff" />
             ) : (
               topPicks.map((book, idx) => (
-                <TouchableOpacity key={idx} onPress={() => navigation.push('IndividualBook', { book })}>
-                  <Image source={{ uri: book.coverImage }} style={styles.bookCoverTrending} />
+                <TouchableOpacity
+                  key={idx}
+                  onPress={() => navigation.push('IndividualBook', { book })}>
+                  <Image
+                    source={{ uri: book.coverImage }}
+                    style={styles.bookCoverTrending}
+                  />
                 </TouchableOpacity>
               ))
             )}
@@ -121,9 +149,23 @@ export default function Home() {
             </TouchableOpacity>
           </View>
           <ScrollView horizontal={true} style={styles.horizontalScroll}>
-            {coverImages.map((image, idx) => (
-              <Image key={idx} source={{ uri: image }} style={styles.bookCover} />
-            ))}
+            {loading ? (
+              <ActivityIndicator size="large" color="#fff" />
+            ) : (
+              previousBorrows.map((book, idx) => (
+                <TouchableOpacity
+                  key={idx}
+                  onPress={() => navigation.push('IndividualBook', { book })}>
+                  <Image
+                    source={{ uri: book.coverImage }}
+                    style={[
+                      styles.bookCover,
+                      !isInCurrentBorrows(book._id) && styles.dimmedBookCover,
+                    ]}
+                  />
+                </TouchableOpacity>
+              ))
+            )}
           </ScrollView>
         </View>
       </ScrollView>
@@ -225,5 +267,8 @@ const styles = StyleSheet.create({
     height: 190,
     borderRadius: 10,
     marginRight: 20,
+  },
+  dimmedBookCover: {
+    opacity: 0.5,
   },
 });
