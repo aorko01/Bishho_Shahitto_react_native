@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   Image,
   SafeAreaView,
@@ -8,37 +8,72 @@ import {
   View,
   TouchableOpacity,
   TextInput,
-  Button
 } from 'react-native';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import {useNavigation, useRoute} from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import LinearGradient from 'react-native-linear-gradient';
 import axiosInstance from '../utils/axiosInstance.js';
 
 // Dummy data for user ratings
 const userRatings = [
-  { id: 1, avatar: 'https://randomuser.me/api/portraits/men/1.jpg', name: 'John Doe', stars: 4 },
-  { id: 2, avatar: 'https://randomuser.me/api/portraits/women/2.jpg', name: 'Jane Smith', stars: 5 },
-  { id: 3, avatar: 'https://randomuser.me/api/portraits/men/3.jpg', name: 'David Brown', stars: 3 },
-  { id: 4, avatar: 'https://randomuser.me/api/portraits/women/4.jpg', name: 'Emma Johnson', stars: 4 },
-  { id: 5, avatar: 'https://randomuser.me/api/portraits/men/5.jpg', name: 'Sophia Williams', stars: 5 },
-];
-
-// Dummy data for user reviews
-const userReviews = [
-  { id: 1, avatar: 'https://randomuser.me/api/portraits/men/6.jpg', name: 'Michael Scott', review: 'Amazing book! A must-read for everyone.' },
-  { id: 2, avatar: 'https://randomuser.me/api/portraits/women/7.jpg', name: 'Pam Beesly', review: 'Loved the story and characters. Highly recommended.' },
-  { id: 3, avatar: 'https://randomuser.me/api/portraits/men/8.jpg', name: 'Jim Halpert', review: 'Interesting plot but could have been shorter.' },
+  {
+    id: 1,
+    avatar: 'https://randomuser.me/api/portraits/men/1.jpg',
+    name: 'John Doe',
+    stars: 4,
+  },
+  {
+    id: 2,
+    avatar: 'https://randomuser.me/api/portraits/women/2.jpg',
+    name: 'Jane Smith',
+    stars: 5,
+  },
+  {
+    id: 3,
+    avatar: 'https://randomuser.me/api/portraits/men/3.jpg',
+    name: 'David Brown',
+    stars: 3,
+  },
+  {
+    id: 4,
+    avatar: 'https://randomuser.me/api/portraits/women/4.jpg',
+    name: 'Emma Johnson',
+    stars: 4,
+  },
+  {
+    id: 5,
+    avatar: 'https://randomuser.me/api/portraits/men/5.jpg',
+    name: 'Sophia Williams',
+    stars: 5,
+  },
 ];
 
 export default function IndividualBook() {
   const navigation = useNavigation();
   const route = useRoute();
-  const { book } = route.params;
-  
+  const {book} = route.params;
+
   const [reviewText, setReviewText] = useState('');
+  const [reviews, setReviews] = useState([]);
+  const [visibleReviews, setVisibleReviews] = useState(3);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   const coverImage = book.coverImage; // Assuming coverImage is a field in your book object
+  const bookId = book._id;
+
+  useEffect(() => {
+    fetchUserReviews();
+  }, [bookId]);
+
+  const fetchUserReviews = async () => {
+    try {
+      const response = await axiosInstance.post('/books/get-reviews', {bookId});
+      setReviews(response.data.data);
+      console.log('User reviews:', response.data.data.length); // Log updated reviews length
+    } catch (error) {
+      console.error('Error fetching user reviews:', error);
+    }
+  };
 
   const coverImages = [
     'https://m.media-amazon.com/images/I/81FPzmB5fgL._AC_UF1000,1000_QL80_.jpg',
@@ -48,39 +83,35 @@ export default function IndividualBook() {
   ];
 
   const handleBorrow = () => {
-    // Implement borrow logic here
     console.log(`Borrowing book: ${book.title}`);
   };
 
   const handleBookmark = () => {
-    // Implement bookmark logic here
     console.log(`Bookmarking book: ${book.title}`);
   };
 
   const handleAddReview = async () => {
     try {
-      // Prepare the data to send in the request
       const data = {
-        bookId: book._id,  // Ensure you have the book ID in your book object
-        review: reviewText,  // If you have a review to send
+        bookId: book._id,
+        review: reviewText,
       };
 
-      // Make a POST request to add a review
       const response = await axiosInstance.post('/books/add-review', data);
 
-      // Handle successful response
       console.log('Review added successfully:', response.data);
-
-      // Optionally, you can clear or reset reviewText or other states
       setReviewText('');
 
+      // Refetch reviews after adding a new one
+      fetchUserReviews();
     } catch (error) {
-      // Handle error
-      console.error('Error adding review:', error.response?.data || error.message);
+      console.error(
+        'Error adding review:',
+        error.response?.data || error.message,
+      );
     }
   };
 
-  // Render stars for user to rate the book
   const renderRatingStars = () => {
     return (
       <View style={styles.ratingStars}>
@@ -93,16 +124,15 @@ export default function IndividualBook() {
     );
   };
 
-  // Render user ratings section
   const renderUserRatings = () => {
     return (
       <View style={styles.userRatings}>
         <Text style={styles.ratingTitle}>Your Rating</Text>
         {renderRatingStars()}
         <Text style={styles.ratingTitle}>User Ratings</Text>
-        {userRatings.map((user) => (
+        {userRatings.map(user => (
           <View key={user.id} style={styles.userRating}>
-            <Image source={{ uri: user.avatar }} style={styles.userAvatar} />
+            <Image source={{uri: user.avatar}} style={styles.userAvatar} />
             <View style={styles.userInfo}>
               <Text style={styles.userName}>{user.name}</Text>
               <View style={styles.userStars}>
@@ -117,21 +147,62 @@ export default function IndividualBook() {
     );
   };
 
-  // Render user reviews section
   const renderUserReviews = () => {
+    // Determine the reviews to show based on whether it's expanded or not
+    const reviewsToShow = isExpanded
+      ? reviews
+      : reviews.slice(0, visibleReviews);
+  
+    // Handle showing/hiding the "Show More" button
+    const hasMoreReviews = reviews.length > visibleReviews;
+  
     return (
       <View style={styles.userReviews}>
         <Text style={styles.reviewTitle}>User Reviews</Text>
-        {userReviews.map((review) => (
-          <View key={review.id} style={styles.userReview}>
-            <Image source={{ uri: review.avatar }} style={styles.reviewAvatar} />
+        {reviewsToShow.map(review => (
+          <View key={review._id} style={styles.userReview}>
+            <Image
+              source={{uri: 'https://dummyimage.com/40x40/000/fff'}}
+              style={styles.reviewAvatar}
+            />
             <View style={styles.reviewInfo}>
-              <Text style={styles.reviewName}>{review.name}</Text>
+              <Text style={styles.reviewName}>
+                {review.userDetails.fullName.lastName || 'Anonymous'}
+              </Text>
               <Text style={styles.reviewText}>{review.review}</Text>
             </View>
+            <TouchableOpacity>
+              <Icon name="favorite" size={24} color="#f44336" />
+            </TouchableOpacity>
           </View>
         ))}
-        {/* Add Review Section */}
+        {hasMoreReviews && !isExpanded && (
+          <TouchableOpacity
+            style={styles.showMoreButton}
+            onPress={() => setVisibleReviews(visibleReviews + 3)}>
+            <Icon name="expand-more" size={30} color="#000" />
+            <Text style={styles.showMoreText}>Show More</Text>
+          </TouchableOpacity>
+        )}
+        {isExpanded && (
+          <TouchableOpacity
+            style={styles.showMoreButton}
+            onPress={() => {
+              setIsExpanded(false);
+              setVisibleReviews(3);
+            }}>
+            <Icon name="expand-less" size={30} color="#000" />
+            <Text style={styles.showMoreText}>Show Less</Text>
+          </TouchableOpacity>
+        )}
+        {!isExpanded && !hasMoreReviews && (
+          <TouchableOpacity
+            style={styles.showMoreButton}
+            onPress={() => setIsExpanded(true)}>
+            <Icon name="expand-less" size={30} color="#000" />
+            <Text style={styles.showMoreText}>Show Less</Text>
+          </TouchableOpacity>
+        )}
         <View style={styles.addReviewContainer}>
           <Text style={styles.addReviewTitle}>Add Your Review</Text>
           <TextInput
@@ -151,6 +222,9 @@ export default function IndividualBook() {
     );
   };
   
+  
+  
+  
 
   return (
     <SafeAreaView style={styles.container}>
@@ -165,7 +239,7 @@ export default function IndividualBook() {
         </TouchableOpacity>
         <View style={styles.bookHead}>
           <View style={styles.imageContainer}>
-            <Image source={{ uri: coverImage }} style={styles.bookCoverMain} />
+            <Image source={{uri: coverImage}} style={styles.bookCoverMain} />
           </View>
           <View style={styles.bookDetails}>
             <Text style={styles.bookTitle}>{book.title}</Text>
@@ -177,8 +251,8 @@ export default function IndividualBook() {
                 style={styles.borrowButton}>
                 <LinearGradient
                   colors={['#f7605e', '#e44243']}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
+                  start={{x: 0, y: 0}}
+                  end={{x: 1, y: 0}}
                   style={styles.linearGradient}>
                   <Text style={styles.borrowText}>Borrow</Text>
                 </LinearGradient>
@@ -205,25 +279,18 @@ export default function IndividualBook() {
           </View>
           <ScrollView horizontal={true} style={styles.horizontalScroll}>
             {coverImages.map((image, idx) => (
-              <Image key={idx} source={{ uri: image }} style={styles.bookCover} />
+              <Image key={idx} source={{uri: image}} style={styles.bookCover} />
             ))}
           </ScrollView>
         </View>
 
-        {/* Render the rating section */}
-        <View style={styles.ratingSection}>
-          {renderUserRatings()}
-        </View>
+        <View style={styles.ratingSection}>{renderUserRatings()}</View>
 
-        {/* Render the review section */}
-        <View style={styles.reviewSection}>
-          {renderUserReviews()}
-        </View>
+        <View style={styles.reviewSection}>{renderUserReviews()}</View>
       </ScrollView>
     </SafeAreaView>
   );
 }
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -350,7 +417,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginRight: 15,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.8,
     shadowRadius: 2,
     elevation: 3,
@@ -452,7 +519,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     padding: 10,
     marginBottom: 10,
-    color: 'black',  // Set text color to black
+    color: 'black', // Set text color to black
     textAlignVertical: 'top',
   },
   submitReviewButton: {
@@ -469,5 +536,18 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
   },
+  showMoreButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 10,
+    paddingVertical: 10,
+    borderTopWidth: 1,
+    borderTopColor: '#ddd',
+    justifyContent: 'center',
+  },
+  showMoreText: {
+    fontSize: 16,
+    color: '#000',
+    marginLeft: 10,
+  },
 });
-
