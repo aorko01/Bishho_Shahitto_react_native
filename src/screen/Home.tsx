@@ -114,7 +114,10 @@ export default function Home() {
         <View style={styles.sectionContainer2}>
           <View style={styles.TrendingContainer}>
             <Text style={styles.Heading}>Trending</Text>
-            <TouchableOpacity>
+            <TouchableOpacity
+            onPress={() =>
+              navigation.push('Catagory', { category: 'Top picks' })
+            }>
               <Text style={styles.all}>See all</Text>
             </TouchableOpacity>
           </View>
@@ -144,7 +147,8 @@ export default function Home() {
         <View style={styles.sectionContainer4}>
           <View style={styles.TrendingContainer}>
             <Text style={styles.Heading}>Your recent Borrows</Text>
-            <TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => navigation.push('BorrowRequest')}>
               <Text style={styles.all}>See all</Text>
             </TouchableOpacity>
           </View>

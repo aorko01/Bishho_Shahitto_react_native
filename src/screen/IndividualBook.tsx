@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Image,
   SafeAreaView,
@@ -7,10 +7,13 @@ import {
   Text,
   View,
   TouchableOpacity,
+  TextInput,
+  Button
 } from 'react-native';
-import {useNavigation, useRoute} from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import LinearGradient from 'react-native-linear-gradient';
+import axiosInstance from '../utils/axiosInstance.js';
 
 // Dummy data for user ratings
 const userRatings = [
@@ -23,7 +26,7 @@ const userRatings = [
 
 // Dummy data for user reviews
 const userReviews = [
-  { id: 1, avatar: 'https://randomuser.me/api/portraits/men/6.jpg', name: 'Michael Scott', review: 'Amazing book! A must-read for everyone.The part of fucking in the pussy was just so juicy that i could not refrain myself from' },
+  { id: 1, avatar: 'https://randomuser.me/api/portraits/men/6.jpg', name: 'Michael Scott', review: 'Amazing book! A must-read for everyone.' },
   { id: 2, avatar: 'https://randomuser.me/api/portraits/women/7.jpg', name: 'Pam Beesly', review: 'Loved the story and characters. Highly recommended.' },
   { id: 3, avatar: 'https://randomuser.me/api/portraits/men/8.jpg', name: 'Jim Halpert', review: 'Interesting plot but could have been shorter.' },
 ];
@@ -31,7 +34,9 @@ const userReviews = [
 export default function IndividualBook() {
   const navigation = useNavigation();
   const route = useRoute();
-  const {book} = route.params;
+  const { book } = route.params;
+  
+  const [reviewText, setReviewText] = useState('');
 
   const coverImage = book.coverImage; // Assuming coverImage is a field in your book object
 
@@ -52,10 +57,31 @@ export default function IndividualBook() {
     console.log(`Bookmarking book: ${book.title}`);
   };
 
+  const handleAddReview = async () => {
+    try {
+      // Prepare the data to send in the request
+      const data = {
+        bookId: book._id,  // Ensure you have the book ID in your book object
+        review: reviewText,  // If you have a review to send
+      };
+
+      // Make a POST request to add a review
+      const response = await axiosInstance.post('/books/add-review', data);
+
+      // Handle successful response
+      console.log('Review added successfully:', response.data);
+
+      // Optionally, you can clear or reset reviewText or other states
+      setReviewText('');
+
+    } catch (error) {
+      // Handle error
+      console.error('Error adding review:', error.response?.data || error.message);
+    }
+  };
+
   // Render stars for user to rate the book
   const renderRatingStars = () => {
-    // Code to render stars goes here
-    // This can be implemented using TouchableOpacity and Icon components for stars
     return (
       <View style={styles.ratingStars}>
         {[...Array(5)].map((_, index) => (
@@ -105,9 +131,26 @@ export default function IndividualBook() {
             </View>
           </View>
         ))}
+        {/* Add Review Section */}
+        <View style={styles.addReviewContainer}>
+          <Text style={styles.addReviewTitle}>Add Your Review</Text>
+          <TextInput
+            style={styles.reviewInput}
+            placeholder="Write your review here..."
+            value={reviewText}
+            onChangeText={setReviewText}
+            multiline
+          />
+          <TouchableOpacity
+            style={styles.submitReviewButton}
+            onPress={handleAddReview}>
+            <Text style={styles.submitReviewButtonText}>Submit Review</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     );
   };
+  
 
   return (
     <SafeAreaView style={styles.container}>
@@ -122,7 +165,7 @@ export default function IndividualBook() {
         </TouchableOpacity>
         <View style={styles.bookHead}>
           <View style={styles.imageContainer}>
-            <Image source={{uri: coverImage}} style={styles.bookCoverMain} />
+            <Image source={{ uri: coverImage }} style={styles.bookCoverMain} />
           </View>
           <View style={styles.bookDetails}>
             <Text style={styles.bookTitle}>{book.title}</Text>
@@ -134,8 +177,8 @@ export default function IndividualBook() {
                 style={styles.borrowButton}>
                 <LinearGradient
                   colors={['#f7605e', '#e44243']}
-                  start={{x: 0, y: 0}}
-                  end={{x: 1, y: 0}}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
                   style={styles.linearGradient}>
                   <Text style={styles.borrowText}>Borrow</Text>
                 </LinearGradient>
@@ -162,7 +205,7 @@ export default function IndividualBook() {
           </View>
           <ScrollView horizontal={true} style={styles.horizontalScroll}>
             {coverImages.map((image, idx) => (
-              <Image key={idx} source={{uri: image}} style={styles.bookCover} />
+              <Image key={idx} source={{ uri: image }} style={styles.bookCover} />
             ))}
           </ScrollView>
         </View>
@@ -390,4 +433,41 @@ const styles = StyleSheet.create({
   reviewText: {
     color: 'black',
   },
+  addReviewContainer: {
+    marginTop: 20,
+    padding: 10,
+    backgroundColor: '#fff',
+    borderRadius: 10,
+  },
+  addReviewTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: 'black',
+    marginBottom: 10,
+  },
+  reviewInput: {
+    height: 100,
+    borderColor: '#ccc',
+    borderWidth: 1,
+    borderRadius: 10,
+    padding: 10,
+    marginBottom: 10,
+    color: 'black',  // Set text color to black
+    textAlignVertical: 'top',
+  },
+  submitReviewButton: {
+    backgroundColor: '#09095b',
+    borderRadius: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 3,
+  },
+  submitReviewButtonText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
 });
+

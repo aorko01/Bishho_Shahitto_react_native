@@ -6,6 +6,7 @@ import Catagory from './src/screen/Catagory';
 import IndividualBook from './src/screen/IndividualBook';
 import Search from './src/screen/Search';
 import BorrowRequest from './src/screen/BorrowRequest';
+import BorrowedBooks from './src/screen/BorrowedBooks'; // Import BorrowedBooks screen
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
