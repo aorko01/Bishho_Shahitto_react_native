@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Image,
   SafeAreaView,
@@ -12,64 +12,76 @@ import {
   Modal,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import axiosInstance from '../utils/axiosInstance';
 
 export default function Category(props) {
   const navigation = useNavigation();
-  const category = 'Browse Books'; // default category if none is provided
+  const category = 'Browse Books';
 
-  const dummyData = [
-    {
-      _id: '1',
-      coverImage: 'https://via.placeholder.com/80x120',
-      title: 'Book One',
-      author: 'Author One',
-      totalRating: 4.5,
-      pageCount: 300,
-      borrowCount: 10,
-      genre: 'Genre One',
-    },
-    {
-      _id: '2',
-      coverImage: 'https://via.placeholder.com/80x120',
-      title: 'Book Two',
-      author: 'Author Two',
-      totalRating: 4.0,
-      pageCount: 250,
-      borrowCount: 8,
-      genre: 'Genre Two',
-    },
-    // Add more dummy books as needed
-  ];
-
-  const genres = ['Genre One', 'Genre Two', 'Genre Three']; // Add more genres as needed
-  const sortOptions = ['Most Borrowed', 'Rating', 'Page Count']; // Sorting options
-
-  const [books, setBooks] = useState(dummyData);
-  const [currentBorrowIds, setCurrentBorrowIds] = useState(['1']); // Dummy current borrows
+  const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(false);
   const [genre, setGenre] = useState('');
   const [author, setAuthor] = useState('');
   const [bookName, setBookName] = useState('');
   const [dropdownVisible, setDropdownVisible] = useState(false);
   const [sortDropdownVisible, setSortDropdownVisible] = useState(false);
-  const [sortOption, setSortOption] = useState('');
+  const [sortOption, setSortOption] = useState('Alphabetically');
+
+  const [genres, setGenres] = useState([]);
+  const sortOptions = ['Most Borrowed', 'Rating', 'Alphabetically'];
+
+  useEffect(() => {
+    const fetchBooks = async () => {
+      setLoading(true);
+      try {
+        let endpoint;
+        if (sortOption === 'Alphabetically') {
+          endpoint = '/books/get-all-books-alphabetically';
+        } else if (sortOption === 'Most Borrowed') {
+          endpoint = '/books/get-books-sorted-by-borrows';
+        }
+        else if(sortOption === 'Rating'){
+            endpoint='/books/get-books-sorted-by-ratings';
+        }
+
+        const response = await axiosInstance.get(endpoint);
+        setBooks(response.data);
+      } catch (error) {
+        console.error("Error fetching books:", error);
+      }
+      setLoading(false);
+    };
+
+    const getGenres = async () => {
+      try {
+        const response = await axiosInstance.get('/books/get-all-genres');
+        setGenres(response.data.data);
+      } catch (error) {
+        console.error('Error fetching genres:', error);
+      }
+    };
+
+    getGenres();
+    fetchBooks();
+  }, [sortOption]);
+
+  useFocusEffect(
+    useCallback(() => {
+      // Reset genre and sortOption when the page is unfocused (navigated away)
+      return () => {
+        setGenre('');
+        setSortOption('Alphabetically');
+      };
+    }, [])
+  );
 
   const filteredBooks = books.filter(
     (book) =>
       (!genre || book.genre === genre) &&
       (!author || book.author.toLowerCase().includes(author.toLowerCase())) &&
       (!bookName || book.title.toLowerCase().includes(bookName.toLowerCase()))
-  ).sort((a, b) => {
-    if (sortOption === 'Most Borrowed') {
-      return b.borrowCount - a.borrowCount;
-    } else if (sortOption === 'Rating') {
-      return b.totalRating - a.totalRating;
-    } else if (sortOption === 'Page Count') {
-      return b.pageCount - a.pageCount;
-    }
-    return 0;
-  });
+  );
 
   const handleSelectGenre = (selectedGenre) => {
     setGenre(selectedGenre);
@@ -93,45 +105,45 @@ export default function Category(props) {
           <Icon name="notifications" size={30} color="white" />
         </View>
         <Text style={styles.HeadText}>{category}</Text>
+        <View style={styles.searchContainermain}>
+          <View style={styles.searchContainer}>
+            <TouchableOpacity
+              style={styles.dropdown}
+              onPress={() => setDropdownVisible(true)}
+            >
+              <Text style={styles.dropdownText}>
+                {genre || 'Select Genre'}
+              </Text>
+              <Icon name="arrow-drop-down" size={20} color="white" />
+            </TouchableOpacity>
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Search by book name"
+              placeholderTextColor="#999"
+              onChangeText={setBookName}
+              value={bookName}
+            />
+          </View>
 
-        <View style={styles.searchContainer}>
-          <TouchableOpacity
-            style={styles.dropdown}
-            onPress={() => setDropdownVisible(true)}
-          >
-            <Text style={styles.dropdownText}>
-              {genre || 'Select Genre'}
-            </Text>
-            <Icon name="arrow-drop-down" size={20} color="white" />
-          </TouchableOpacity>
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Search by book name"
-            placeholderTextColor="#999"
-            onChangeText={setBookName}
-            value={bookName}
-          />
+          <View style={styles.searchContainer}>
+            <TextInput
+              style={styles.searchInputAuthor}
+              placeholder="Search by author"
+              placeholderTextColor="#999"
+              onChangeText={setAuthor}
+              value={author}
+            />
+            <TouchableOpacity
+              style={styles.dropdown}
+              onPress={() => setSortDropdownVisible(true)}
+            >
+              <Text style={styles.dropdownText}>
+                {sortOption || 'Sort By'}
+              </Text>
+              <Icon name="arrow-drop-down" size={20} color="white" />
+            </TouchableOpacity>
+          </View>
         </View>
-
-        <View style={styles.searchContainer}>
-          <TextInput
-            style={styles.searchInputAuthor}
-            placeholder="Search by author"
-            placeholderTextColor="#999"
-            onChangeText={setAuthor}
-            value={author}
-          />
-          <TouchableOpacity
-            style={styles.dropdown}
-            onPress={() => setSortDropdownVisible(true)}
-          >
-            <Text style={styles.dropdownText}>
-              {sortOption || 'Sort By'}
-            </Text>
-            <Icon name="arrow-drop-down" size={20} color="white" />
-          </TouchableOpacity>
-        </View>
-
         <Modal
           visible={dropdownVisible}
           transparent={true}
@@ -183,7 +195,7 @@ export default function Category(props) {
             key={index}
             onPress={() => navigation.push('IndividualBook', { book })}
           >
-            <View key={index} style={styles.bookContainer}>
+            <View style={styles.bookContainer}>
               <View>
                 <Image
                   source={{ uri: book.coverImage }}
@@ -201,13 +213,13 @@ export default function Category(props) {
                 </Text>
               </View>
               <View style={styles.buttonContainer}>
-                {currentBorrowIds.includes(book._id) ? (
-                  <TouchableOpacity style={styles.returnButton}>
-                    <Text style={styles.buttonText}>Return</Text>
+                {book.canBeBorrowed ? (
+                  <TouchableOpacity style={styles.borrowButton}>
+                    <Text style={styles.buttonText}>Borrow</Text>
                   </TouchableOpacity>
                 ) : (
                   <View style={styles.returnedLabel}>
-                    <Text style={styles.labelText}>Returned</Text>
+                    <Text style={styles.labelText}>Borrow</Text>
                   </View>
                 )}
               </View>
@@ -249,43 +261,42 @@ const styles = StyleSheet.create({
     color: 'white',
     fontWeight: 'bold',
     marginTop: 60,
-    paddingLeft: 20,
-    marginBottom: 30,
+    textAlign: 'center',
+  },
+  searchContainermain: {
+    margin: 10,
+    marginBottom: 20,
   },
   searchContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    marginBottom: 10,
+    justifyContent: 'space-around',
+    marginTop: 20,
   },
   dropdown: {
-    flex: 1,
-    backgroundColor: '#3a3c51',
-    borderRadius: 10,
+    backgroundColor: '#1a1b2b',
+    borderRadius: 5,
+    padding: 10,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 10,
   },
   dropdownText: {
     color: 'white',
     fontSize: 16,
+    marginRight: 5,
   },
   searchInput: {
-    flex: 1,
     backgroundColor: '#3a3c51',
-    borderRadius: 10,
+    borderRadius: 15,
     color: 'white',
     paddingHorizontal: 10,
-    marginLeft: 10,
+    flex: 1,
   },
   searchInputAuthor: {
-    flex: 1,
     backgroundColor: '#3a3c51',
-    borderRadius: 10,
+    borderRadius: 15,
     color: 'white',
     paddingHorizontal: 10,
-    marginRight: 10,
+    flex: 1,
   },
   modalOverlay: {
     flex: 1,
@@ -294,15 +305,13 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   dropdownMenu: {
-    backgroundColor: '#3a3c51',
-    borderRadius: 10,
+    backgroundColor: '#333',
+    borderRadius: 5,
     width: '80%',
     padding: 10,
   },
   dropdownItem: {
-    padding: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#555',
+    paddingVertical: 10,
   },
   dropdownItemText: {
     color: 'white',
@@ -310,46 +319,44 @@ const styles = StyleSheet.create({
   },
   bookContainer: {
     flexDirection: 'row',
-    backgroundColor: '#3a3c51',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    margin: 20,
-    borderRadius: 20,
-    marginBottom: 30,
+    padding: 10,
+    borderBottomColor: '#444',
+    borderBottomWidth: 1,
   },
   bookCover: {
-    width: 80,
-    height: 120,
+    width: 100,
+    height: 150,
     borderRadius: 10,
   },
   description: {
     flex: 1,
-    marginLeft: 30,
+    marginLeft: 10,
   },
   buttonContainer: {
     justifyContent: 'center',
+  },
+  borrowButton: {
+    backgroundColor: 'red',
+    borderRadius: 5,
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    justifyContent: 'center',
     alignItems: 'center',
   },
-  returnButton: {
-    backgroundColor: 'red',
+  returnedLabel: {
+    backgroundColor: '#888',
+    borderRadius: 5,
     paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 10,
+    paddingHorizontal: 15,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   buttonText: {
     color: 'white',
-    fontWeight: 'bold',
-  },
-  returnedLabel: {
-    backgroundColor: 'gray',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 10,
+    fontSize: 16,
   },
   labelText: {
     color: 'white',
-    fontWeight: 'bold',
+    fontSize: 16,
   },
 });
