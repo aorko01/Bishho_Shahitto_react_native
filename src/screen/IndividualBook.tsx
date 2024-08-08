@@ -148,84 +148,83 @@ export default function IndividualBook() {
   };
 
   const renderUserReviews = () => {
-    // Determine the reviews to show based on whether it's expanded or not
-    const reviewsToShow = isExpanded
-      ? reviews
-      : reviews.slice(0, visibleReviews);
+  // Determine the reviews to show based on whether it's expanded or not
+  const reviewsToShow = isExpanded
+    ? reviews
+    : reviews.slice(0, visibleReviews);
   
-    // Handle showing/hiding the "Show More" button
-    const hasMoreReviews = reviews.length > visibleReviews;
+  // Handle showing/hiding the "Show More" button
+  const hasMoreReviews = reviews.length > visibleReviews;
   
-    return (
-      <View style={styles.userReviews}>
-        <Text style={styles.reviewTitle}>User Reviews</Text>
-        {reviewsToShow.map(review => (
-          <View key={review._id} style={styles.userReview}>
-            <Image
-              source={{uri: 'https://dummyimage.com/40x40/000/fff'}}
-              style={styles.reviewAvatar}
-            />
-            <View style={styles.reviewInfo}>
-              <Text style={styles.reviewName}>
-                {review.userDetails.fullName.lastName || 'Anonymous'}
-              </Text>
-              <Text style={styles.reviewText}>{review.review}</Text>
-            </View>
-            <TouchableOpacity>
-              <Icon name="favorite" size={24} color="#f44336" />
-            </TouchableOpacity>
-          </View>
-        ))}
-        {hasMoreReviews && !isExpanded && (
-          <TouchableOpacity
-            style={styles.showMoreButton}
-            onPress={() => setVisibleReviews(visibleReviews + 3)}>
-            <Icon name="expand-more" size={30} color="#000" />
-            <Text style={styles.showMoreText}>Show More</Text>
-          </TouchableOpacity>
-        )}
-        {isExpanded && (
-          <TouchableOpacity
-            style={styles.showMoreButton}
-            onPress={() => {
-              setIsExpanded(false);
-              setVisibleReviews(3);
-            }}>
-            <Icon name="expand-less" size={30} color="#000" />
-            <Text style={styles.showMoreText}>Show Less</Text>
-          </TouchableOpacity>
-        )}
-        {!isExpanded && !hasMoreReviews && (
-          <TouchableOpacity
-            style={styles.showMoreButton}
-            onPress={() => setIsExpanded(true)}>
-            <Icon name="expand-less" size={30} color="#000" />
-            <Text style={styles.showMoreText}>Show Less</Text>
-          </TouchableOpacity>
-        )}
-        <View style={styles.addReviewContainer}>
-          <Text style={styles.addReviewTitle}>Add Your Review</Text>
-          <TextInput
-            style={styles.reviewInput}
-            placeholder="Write your review here..."
-            value={reviewText}
-            onChangeText={setReviewText}
-            multiline
+  return (
+    <View style={styles.userReviews}>
+      <Text style={styles.reviewTitle}>User Reviews</Text>
+      {reviewsToShow.map(review => (
+        <View key={review._id} style={styles.userReview}>
+          <Image
+            source={{uri: 'https://dummyimage.com/40x40/000/fff'}}
+            style={styles.reviewAvatar}
           />
-          <TouchableOpacity
-            style={styles.submitReviewButton}
-            onPress={handleAddReview}>
-            <Text style={styles.submitReviewButtonText}>Submit Review</Text>
+          <View style={styles.reviewInfo}>
+            <Text style={styles.reviewName}>
+              {review.userDetails.fullName.lastName || 'Anonymous'}
+            </Text>
+            <Text style={styles.reviewText}>{review.review}</Text>
+          </View>
+          <TouchableOpacity>
+            <Icon
+              name="favorite"
+              size={24}
+              color={review.isLiked ? '#f44336' : '#ccc'} // Change color based on isLiked
+            />
           </TouchableOpacity>
         </View>
+      ))}
+      {hasMoreReviews && !isExpanded && (
+        <TouchableOpacity
+          style={styles.showMoreButton}
+          onPress={() => setVisibleReviews(visibleReviews + 3)}>
+          <Icon name="expand-more" size={30} color="#000" />
+          <Text style={styles.showMoreText}>Show More</Text>
+        </TouchableOpacity>
+      )}
+      {isExpanded && (
+        <TouchableOpacity
+          style={styles.showMoreButton}
+          onPress={() => {
+            setIsExpanded(false);
+            setVisibleReviews(3);
+          }}>
+          <Icon name="expand-less" size={30} color="#000" />
+          <Text style={styles.showMoreText}>Show Less</Text>
+        </TouchableOpacity>
+      )}
+      {!isExpanded && !hasMoreReviews && (
+        <TouchableOpacity
+          style={styles.showMoreButton}
+          onPress={() => setIsExpanded(true)}>
+          <Icon name="expand-less" size={30} color="#000" />
+          <Text style={styles.showMoreText}>Show Less</Text>
+        </TouchableOpacity>
+      )}
+      <View style={styles.addReviewContainer}>
+        <Text style={styles.addReviewTitle}>Add Your Review</Text>
+        <TextInput
+          style={styles.reviewInput}
+          placeholder="Write your review here..."
+          value={reviewText}
+          onChangeText={setReviewText}
+          multiline
+        />
+        <TouchableOpacity
+          style={styles.submitReviewButton}
+          onPress={handleAddReview}>
+          <Text style={styles.submitReviewButtonText}>Submit Review</Text>
+        </TouchableOpacity>
       </View>
-    );
-  };
-  
-  
-  
-  
-
+    </View>
+  );
+};
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView>
@@ -550,4 +549,5 @@ const styles = StyleSheet.create({
     color: '#000',
     marginLeft: 10,
   },
+  
 });

@@ -6,6 +6,7 @@ import Profile from '../screen/Profile';
 import BorrowedBooks from '../screen/BorrowedBooks';
 import Search from '../screen/Search';
 import Requested from '../screen/Requested';
+import BrowseBooks from '../screen/BrowseBook';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
@@ -42,10 +43,10 @@ export default function BottomNavigation() {
               iconStyle = styles.searchIconContainer;
               labelStyle = [styles.label, styles.searchLabel];
               break;
-            case 'Requested':
+            case 'BrowseBooks':
               iconName = 'library-books';
               IconComponent = MaterialIcons;
-              label = 'Request';
+              label = 'BrowseBooks';
               break;
             case 'Profile':
               iconName = 'person-outline';
@@ -70,9 +71,9 @@ export default function BottomNavigation() {
       })}
     >
       <Tab.Screen name="Home" component={Home} />
-      <Tab.Screen name="BorrowedBooks" component={BorrowedBooks} />
+      <Tab.Screen name="BrowseBooks" component={BrowseBooks} />
       <Tab.Screen name="Search" component={Search} />
-      <Tab.Screen name="Requested" component={Requested} />
+      <Tab.Screen name="BorrowedBooks" component={BorrowedBooks} />
       <Tab.Screen name="Profile" component={Profile} />
     </Tab.Navigator>
   );
