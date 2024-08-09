@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   Image,
   SafeAreaView,
@@ -10,7 +10,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import axiosInstance from '../utils/axiosInstance.js';
 
 export default function Home() {
@@ -18,11 +18,6 @@ export default function Home() {
   const [topPicks, setTopPicks] = useState([]);
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetchTopPicks();
-    fetchPreviousBorrows();
-  }, []);
 
   const fetchTopPicks = async () => {
     try {
@@ -46,11 +41,12 @@ export default function Home() {
     }
   };
 
-  const isInCurrentBorrows = (bookId) => {
-    return currentBorrows.some(
-      (borrow) => borrow.book._id === bookId
-    );
-  };
+  useFocusEffect(
+    useCallback(() => {
+      fetchTopPicks();
+      fetchPreviousBorrows();
+    }, [])
+  );
 
   const coverImages = [
     'https://m.media-amazon.com/images/I/81YkqyaFVEL._AC_UF1000,1000_QL80_.jpg',
@@ -94,16 +90,22 @@ export default function Home() {
             {loading ? (
               <ActivityIndicator size="large" color="#fff" />
             ) : (
-              topPicks.map((book, idx) => (
-                <TouchableOpacity
-                  key={idx}
-                  onPress={() => navigation.push('IndividualBook', { book })}>
-                  <Image
-                    source={{ uri: book.coverImage }}
-                    style={styles.bookCoverTrending}
-                  />
-                </TouchableOpacity>
-              ))
+              topPicks.length > 0 ? (
+                topPicks.map((book, idx) => (
+                  <TouchableOpacity
+                    key={idx}
+                    onPress={() => navigation.push('IndividualBook', { book })}>
+                    <Image
+                      source={{ uri: book.coverImage }}
+                      style={styles.bookCoverTrending}
+                    />
+                  </TouchableOpacity>
+                ))
+              ) : (
+                coverImages.map((image, idx) => (
+                  <Image key={idx} source={{ uri: image }} style={styles.bookCoverTrending} />
+                ))
+              )
             )}
           </ScrollView>
         </View>
@@ -154,19 +156,25 @@ export default function Home() {
             {loading ? (
               <ActivityIndicator size="large" color="#fff" />
             ) : (
-              books.map((book, idx) => (
-                <TouchableOpacity
-                  key={idx}
-                  onPress={() => navigation.push('IndividualBook', { book })}>
-                  <Image
-                    source={{ uri: book.coverImage }}
-                    style={[
-                      styles.bookCover,
-                      book.toReturn === false && styles.dimmedBookCover,
-                    ]}
-                  />
-                </TouchableOpacity>
-              ))
+              books.length > 0 ? (
+                books.map((book, idx) => (
+                  <TouchableOpacity
+                    key={idx}
+                    onPress={() => navigation.push('IndividualBook', { book })}>
+                    <Image
+                      source={{ uri: book.coverImage }}
+                      style={[
+                        styles.bookCover,
+                        book.toReturn === false && styles.dimmedBookCover,
+                      ]}
+                    />
+                  </TouchableOpacity>
+                ))
+              ) : (
+                coverImages.map((image, idx) => (
+                  <Image key={idx} source={{ uri: image }} style={styles.bookCover} />
+                ))
+              )
             )}
           </ScrollView>
         </View>

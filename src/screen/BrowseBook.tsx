@@ -16,7 +16,7 @@ import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import Book from '../components/Book';
 import axiosInstance from '../utils/axiosInstance';
 
-export default function Category(props) {
+export default function BrowseBook(props) {
   const navigation = useNavigation();
   const category = 'Browse Books';
 

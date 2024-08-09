@@ -29,19 +29,27 @@ export default function Category(props) {
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     fetchBooks();
   }, []);
 
-  const fetchBooks = async () => {
-    if (loading) return;
-    setLoading(true);
+  const fetchBooks = async (refresh = false) => {
+    if (loading || refreshing) return;
+    if (refresh) {
+      setRefreshing(true);
+      setPage(1);
+    } else {
+      setLoading(true);
+    }
+
     try {
-      const response = await axiosInstance.get(`${url}?page=${page}`);
+      const response = await axiosInstance.get(`${url}?page=${refresh ? 1 : page}`);
       if (response.data.success) {
-        setBooks(prevBooks => [...prevBooks, ...response.data.data]);
-        setPage(page + 1);
+        const newBooks = response.data.data;
+        setBooks(refresh ? newBooks : [...books, ...newBooks]);
+        setPage(refresh ? 2 : page + 1);
       } else {
         console.error('Failed to fetch books:', response.data.message);
       }
@@ -49,6 +57,7 @@ export default function Category(props) {
       console.error('Error fetching books:', error);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
 
@@ -56,7 +65,10 @@ export default function Category(props) {
     fetchBooks();
   };
 
-  const coverImages = books.map(book => book.coverImage);
+  const handleBookBorrowed = () => {
+    // Re-fetch the books after a book is borrowed, without resetting the list
+    fetchBooks(true);
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -78,10 +90,10 @@ export default function Category(props) {
         <Text style={styles.HeadText}>{category}</Text>
 
         {books.map((book, index) => (
-          <Book key={index} book={book} /> 
+          <Book key={index} book={book} onBookBorrowed={handleBookBorrowed} /> 
         ))}
 
-        {loading && (
+        {loading && !refreshing && (
           <ActivityIndicator
             style={{marginTop: 20}}
             size="large"

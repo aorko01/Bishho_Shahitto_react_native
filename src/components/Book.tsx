@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, {useState} from 'react';
 import {
   View,
   Text,
@@ -7,10 +7,13 @@ import {
   StyleSheet,
   Modal,
   ScrollView,
+  TextInput,
+  TouchableWithoutFeedback,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import {useNavigation} from '@react-navigation/native';
+import axiosInstance from '../utils/axiosInstance';
 
-export default function Book({ book }) {
+export default function Book({book, onBookBorrowed}) {
   const navigation = useNavigation();
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedDays, setSelectedDays] = useState(7);
@@ -21,8 +24,7 @@ export default function Book({ book }) {
         return (
           <TouchableOpacity
             style={[styles.borrowButton, styles.borrowButtonActive]}
-            onPress={() => setModalVisible(true)}
-          >
+            onPress={() => setModalVisible(true)}>
             <Text style={styles.buttonText}>Borrow</Text>
           </TouchableOpacity>
         );
@@ -53,74 +55,93 @@ export default function Book({ book }) {
     }
   };
 
-  const handleDaySelection = (days) => {
-    setSelectedDays(days);
+  const handleDaySelection = days => {
+    if (days >= 1 && days <= 30) {
+      setSelectedDays(days);
+    }
   };
 
-  const handleConfirmBorrow = () => {
-    // Handle the borrow action here, e.g., make an API call with selectedDays
-    setModalVisible(false);
-    console.log(`Book borrowed for ${selectedDays} days.`);
+  const handleConfirmBorrow = async () => {
+    try {
+      const response = await axiosInstance.post('/books/borrow-book', {
+        bookId: book._id,
+        daysToBorrow: selectedDays,
+      });
+      console.log(`Book borrowed for ${selectedDays} days.`);
+      console.log(response.data); // Handle the response if needed
+      setModalVisible(false);
+      onBookBorrowed(); // Trigger re-fetch of books in Category component
+    } catch (error) {
+      console.error('Error borrowing the book:', error);
+      // Optionally handle the error, e.g., show an alert
+    }
   };
 
   return (
-    <TouchableOpacity onPress={() => navigation.push('IndividualBook', { book })}>
+    <TouchableOpacity onPress={() => navigation.push('IndividualBook', {book})}>
       <View style={styles.bookContainer}>
         <View>
           <Image
-            source={{ uri: book.coverImage }}
+            source={{uri: book.coverImage}}
             style={[
               styles.bookCover,
-              (book.toReturn === false || book.canBeBorrowed === false) ? styles.dimmedImage : null,
+              book.toReturn === false || book.canBeBorrowed === false
+                ? styles.dimmedImage
+                : null,
             ]}
           />
         </View>
         <View style={styles.description}>
-          <Text style={{ color: 'white', fontSize: 20 }}>{book.title}</Text>
-          <Text style={{ fontSize: 15 }}>{book.author}</Text>
-          <Text style={{ fontSize: 15, marginTop: 30 }}>
+          <Text style={{color: 'white', fontSize: 20}}>{book.title}</Text>
+          <Text style={{fontSize: 15}}>{book.author}</Text>
+          <Text style={{fontSize: 15, marginTop: 30}}>
             Rating: {book.totalRating}
           </Text>
-          <Text style={{ fontSize: 15, marginTop: 10 }}>
+          <Text style={{fontSize: 15, marginTop: 10}}>
             Page Count: {book.pageCount}
           </Text>
         </View>
-        <View style={styles.buttonContainer}>
-          {renderButtons()}
-        </View>
+        <View style={styles.buttonContainer}>{renderButtons()}</View>
 
         {/* Modal for selecting days */}
         <Modal
           transparent={true}
           visible={modalVisible}
           animationType="slide"
-          onRequestClose={() => setModalVisible(false)}
-        >
-          <View style={styles.modalContainer}>
-            <View style={styles.modalContent}>
-              <Text style={styles.modalTitle}>Select Days</Text>
-              <ScrollView contentContainerStyle={styles.scrollContainer}>
-                {Array.from({ length: 30 }, (_, index) => index + 1).map((day) => (
+          onRequestClose={() => setModalVisible(false)}>
+          <TouchableWithoutFeedback onPress={() => setModalVisible(false)}>
+            <View style={styles.modalOverlay}>
+              <TouchableWithoutFeedback onPress={() => {}}>
+                <View style={styles.modalContent}>
+                  <Text style={styles.modalTitle}>Borrow for</Text>
+                  <View style={styles.daySelector}>
+                    <TouchableOpacity
+                      style={styles.dayAdjustButton}
+                      onPress={() => handleDaySelection(selectedDays - 1)}>
+                      <Text style={styles.adjustButtonText}>-</Text>
+                    </TouchableOpacity>
+                    <TextInput
+                      style={styles.dayInput}
+                      value={String(selectedDays)}
+                      onChangeText={text => handleDaySelection(Number(text))}
+                      keyboardType="number-pad"
+                    />
+                    <TouchableOpacity
+                      style={styles.dayAdjustButton}
+                      onPress={() => handleDaySelection(selectedDays + 1)}>
+                      <Text style={styles.adjustButtonText}>+</Text>
+                    </TouchableOpacity>
+                  </View>
+                  <Text style={styles.modalText}>days</Text>
                   <TouchableOpacity
-                    key={day}
-                    style={[
-                      styles.dayButton,
-                      selectedDays === day && styles.dayButtonSelected,
-                    ]}
-                    onPress={() => handleDaySelection(day)}
-                  >
-                    <Text style={styles.dayText}>{day} {day === 1 ? 'day' : 'days'}</Text>
+                    style={styles.confirmButton}
+                    onPress={handleConfirmBorrow}>
+                    <Text style={styles.confirmButtonText}>Confirm</Text>
                   </TouchableOpacity>
-                ))}
-              </ScrollView>
-              <TouchableOpacity
-                style={styles.confirmButton}
-                onPress={handleConfirmBorrow}
-              >
-                <Text style={styles.confirmButtonText}>Confirm</Text>
-              </TouchableOpacity>
+                </View>
+              </TouchableWithoutFeedback>
             </View>
-          </View>
+          </TouchableWithoutFeedback>
         </Modal>
       </View>
     </TouchableOpacity>
@@ -199,7 +220,7 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
   },
-  modalContainer: {
+  modalOverlay: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
@@ -217,23 +238,29 @@ const styles = StyleSheet.create({
     color: 'white',
     marginBottom: 20,
   },
-  scrollContainer: {
+  daySelector: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
+    alignItems: 'center',
     justifyContent: 'center',
   },
-  dayButton: {
-    padding: 10,
-    margin: 5,
-    borderRadius: 5,
-    backgroundColor: '#3a3c51',
-  },
-  dayButtonSelected: {
+  dayAdjustButton: {
     backgroundColor: '#4e4890',
+    padding: 10,
+    borderRadius: 5,
+    marginHorizontal: 10,
   },
-  dayText: {
+  adjustButtonText: {
+    color: 'white',
+    fontSize: 20,
+  },
+  dayInput: {
+    backgroundColor: '#3a3c51',
     color: 'white',
     fontSize: 16,
+    padding: 10,
+    borderRadius: 5,
+    textAlign: 'center',
+    width: 50,
   },
   confirmButton: {
     marginTop: 20,
