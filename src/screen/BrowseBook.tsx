@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import Book from '../components/Book';
 import axiosInstance from '../utils/axiosInstance';
 
 export default function Category(props) {
@@ -191,40 +192,7 @@ export default function Category(props) {
         </Modal>
 
         {filteredBooks.map((book, index) => (
-          <TouchableOpacity
-            key={index}
-            onPress={() => navigation.push('IndividualBook', { book })}
-          >
-            <View style={styles.bookContainer}>
-              <View>
-                <Image
-                  source={{ uri: book.coverImage }}
-                  style={styles.bookCover}
-                />
-              </View>
-              <View style={styles.description}>
-                <Text style={{ color: 'white', fontSize: 20 }}>{book.title}</Text>
-                <Text style={{ fontSize: 15 }}>{book.author}</Text>
-                <Text style={{ fontSize: 15, marginTop: 30 }}>
-                  Rating: {book.totalRating}
-                </Text>
-                <Text style={{ fontSize: 15, marginTop: 10 }}>
-                  Page Count: {book.pageCount}
-                </Text>
-              </View>
-              <View style={styles.buttonContainer}>
-                {book.canBeBorrowed ? (
-                  <TouchableOpacity style={styles.borrowButton}>
-                    <Text style={styles.buttonText}>Borrow</Text>
-                  </TouchableOpacity>
-                ) : (
-                  <View style={styles.returnedLabel}>
-                    <Text style={styles.labelText}>Borrow</Text>
-                  </View>
-                )}
-              </View>
-            </View>
-          </TouchableOpacity>
+            <Book key={index} book={book} />
         ))}
 
         {loading && (

@@ -16,8 +16,7 @@ import axiosInstance from '../utils/axiosInstance.js';
 export default function Home() {
   const navigation = useNavigation();
   const [topPicks, setTopPicks] = useState([]);
-  const [previousBorrows, setPreviousBorrows] = useState([]);
-  const [currentBorrows, setCurrentBorrows] = useState([]);
+  const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -39,8 +38,7 @@ export default function Home() {
   const fetchPreviousBorrows = async () => {
     try {
       const response = await axiosInstance.get('/books/get-previous-borrows'); // Adjust endpoint as per your backend route
-      setPreviousBorrows(response.data.data.previousBorrows);
-      setCurrentBorrows(response.data.data.currentBorrows);
+      setBooks(response.data.data);
       setLoading(false);
     } catch (error) {
       console.error('Error fetching previous borrows:', error);
@@ -156,7 +154,7 @@ export default function Home() {
             {loading ? (
               <ActivityIndicator size="large" color="#fff" />
             ) : (
-              previousBorrows.map((book, idx) => (
+              books.map((book, idx) => (
                 <TouchableOpacity
                   key={idx}
                   onPress={() => navigation.push('IndividualBook', { book })}>
@@ -164,7 +162,7 @@ export default function Home() {
                     source={{ uri: book.coverImage }}
                     style={[
                       styles.bookCover,
-                      !isInCurrentBorrows(book._id) && styles.dimmedBookCover,
+                      book.toReturn === false && styles.dimmedBookCover,
                     ]}
                   />
                 </TouchableOpacity>
