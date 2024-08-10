@@ -3,9 +3,8 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { View, Text, StyleSheet } from 'react-native';
 import Home from '../screen/Home';
 import Profile from '../screen/Profile';
-import BorrowedBooks from '../screen/BorrowedBooks';
+import BorrowRequest from '../screen/BorrowRequest';
 import Search from '../screen/Search';
-import Requested from '../screen/Requested';
 import BrowseBooks from '../screen/BrowseBook';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -31,10 +30,10 @@ export default function BottomNavigation() {
               IconComponent = Ionicons;
               label = 'Home';
               break;
-            case 'BorrowedBooks':
-              iconName = 'book';
+            case 'BrowseBooks':
+              iconName = 'library-books';
               IconComponent = MaterialIcons;
-              label = 'Borrowed';
+              label = 'Browse';
               break;
             case 'Search':
               iconName = 'search-outline';
@@ -43,10 +42,10 @@ export default function BottomNavigation() {
               iconStyle = styles.searchIconContainer;
               labelStyle = [styles.label, styles.searchLabel];
               break;
-            case 'BrowseBooks':
-              iconName = 'library-books';
+            case 'BorrowRequest':
+              iconName = 'book';
               IconComponent = MaterialIcons;
-              label = 'BrowseBooks';
+              label = 'Borrowed';
               break;
             case 'Profile':
               iconName = 'person-outline';
@@ -73,7 +72,7 @@ export default function BottomNavigation() {
       <Tab.Screen name="Home" component={Home} />
       <Tab.Screen name="BrowseBooks" component={BrowseBooks} />
       <Tab.Screen name="Search" component={Search} />
-      <Tab.Screen name="BorrowedBooks" component={BorrowedBooks} />
+      <Tab.Screen name="BorrowRequest" component={BorrowRequest} />
       <Tab.Screen name="Profile" component={Profile} />
     </Tab.Navigator>
   );

@@ -150,7 +150,7 @@ export default function Home() {
           <View style={styles.TrendingContainer}>
             <Text style={styles.Heading}>Your recent Borrows</Text>
             <TouchableOpacity
-              onPress={() => navigation.push('BorrowRequest')}>
+              onPress={() => navigation.push('BorrowedBooks')}>
               <Text style={styles.all}>See all</Text>
             </TouchableOpacity>
           </View>
