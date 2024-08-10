@@ -61,12 +61,14 @@ export default function Home() {
         <View style={styles.notification}>
           <Icon name="notifications" size={30} color="white" />
         </View>
-        <Image
-          source={{
-            uri: 'https://encrypted-tbn2.gstatic.com/images?q=tbn:ANd9GcTP9hneBUzKcWY0lZAnnIP9-rPOWqP9lsVIO5iihMwrKsTcevg2OehToQ3wb-1z3FNIWJ4nWEqdd5AunJjSCdwTFbWgAW5mFSxlRp56Og',
-          }}
-          style={styles.avatar}
-        />
+        <TouchableOpacity onPress={() => navigation.openDrawer()}>
+          <Image
+            source={{
+              uri: 'https://encrypted-tbn2.gstatic.com/images?q=tbn:ANd9GcTP9hneBUzKcWY0lZAnnIP9-rPOWqP9lsVIO5iihMwrKsTcevg2OehToQ3wb-1z3FNIWJ4nWEqdd5AunJjSCdwTFbWgAW5mFSxlRp56Og',
+            }}
+            style={styles.avatar}
+          />
+        </TouchableOpacity>
         <Text style={styles.Hello}>Hello Ali!</Text>
         <TouchableOpacity
           style={styles.searchTouchable}
@@ -234,6 +236,7 @@ const styles = StyleSheet.create({
     top: 0,
     right: 0,
     margin: 12,
+    zIndex: 1,
   },
   avatar: {
     width: 65,
