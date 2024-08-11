@@ -12,6 +12,7 @@ import {
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useNavigation } from '@react-navigation/native';
 import Book from '../components/Book';
+import NotificationIcon from '../components/NotificationIcon';
 import axiosInstance from '../utils/axiosInstance';
 
 export default function Category() {
@@ -51,9 +52,7 @@ export default function Category() {
             <Icon name="arrow-back" size={30} color="white" />
           </View>
         </TouchableOpacity>
-        <View style={styles.notification}>
-          <Icon name="notifications" size={30} color="white" />
-        </View>
+        <NotificationIcon />
         <Text style={styles.HeadText}>{category}</Text>
 
         {books.map((book, index) => (

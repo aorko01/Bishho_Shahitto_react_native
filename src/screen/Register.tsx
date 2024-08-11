@@ -1,183 +1,267 @@
-import { StyleSheet, Text, View, TextInput, TouchableOpacity, ScrollView, SafeAreaView } from 'react-native';
 import React, { useState } from 'react';
-import { Formik } from 'formik';
-import * as Yup from 'yup';
+import {
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+  TextInput,
+  Image,
+  TouchableOpacity,
+} from 'react-native';
+import Icon from 'react-native-vector-icons/MaterialIcons';
+import { launchImageLibrary } from 'react-native-image-picker';
+import axios from 'axios'; // Import axios
+const API_URI = 'http://10.0.2.2:8000/api/v1';
 
-const userSchema = Yup.object().shape({
-  firstName: Yup.string().required().label('First Name'),
-  middleName: Yup.string().label('Middle Name'),
-  lastName: Yup.string().required().label('Last Name'),
-  username: Yup.string()
-    .required()
-    .label('Username')
-    .min(5, 'Username must be at least 5 characters')
-    .max(15, 'Username must be at most 15 characters'),
-  email: Yup.string().required().email().label('Email'),
-  password: Yup.string()
-    .required()
-    .min(8, 'Password must be at least 8 characters')
-    .max(15, 'Password must be at most 15 characters'),
-});
-
-export default function Register() {
-  const initialValues = {
+export default function Register({ navigation }) {
+  const [user, setUser] = useState({
+    username: '',
+    email: '',
     firstName: '',
     middleName: '',
     lastName: '',
-    username: '',
-    email: '',
     password: '',
+    confirmPassword: '',
+    avatar: '', // No default image
+    region: '', // New field for region
+  });
+
+  const selectImage = () => {
+    const options = {
+      mediaType: 'photo',
+      maxWidth: 300,
+      maxHeight: 300,
+      quality: 1,
+    };
+
+    launchImageLibrary(options, (response) => {
+      if (response.didCancel) {
+        console.log('User cancelled image picker');
+      } else if (response.error) {
+        console.log('ImagePicker Error: ', response.error);
+      } else if (response.assets && response.assets.length > 0) {
+        const selectedImageUri = response.assets[0].uri;
+        setUser({ ...user, avatar: selectedImageUri });
+      }
+    });
   };
 
-  const handleRegister = (values) => {
-    console.log(values); // Handle form submission, e.g., send data to backend
+  const handleRegister = async () => {
+    try {
+      if (user.password !== user.confirmPassword) {
+        alert('Passwords do not match');
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('username', user.username);
+      formData.append('email', user.email);
+      formData.append('firstName', user.firstName);
+      formData.append('middleName', user.middleName);
+      formData.append('lastName', user.lastName);
+      formData.append('password', user.password);
+      formData.append('Region', user.region); // Add region to form data
+
+      if (user.avatar) {
+        formData.append('avatar', {
+          uri: user.avatar,
+          type: 'image/jpeg', // Adjust based on the image type
+          name: 'avatar.jpg', // Adjust the file name if needed
+        });
+      }
+
+      // Send POST request to your backend
+      const response = await axios.post(`${API_URI}/users/register`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      if (response.status === 201) {
+        alert('Registration successful!');
+        navigation.navigate('Login'); // Navigate to login or another screen
+      }
+    } catch (error) {
+      console.error('Registration error:', error);
+      alert('Registration failed');
+    }
   };
 
   return (
-    <ScrollView
-      contentContainerStyle={styles.scrollView}
-      keyboardShouldPersistTaps="handled">
-      <SafeAreaView style={styles.safeArea}>
-        <View style={styles.container}>
-          <Text style={styles.title}>Register</Text>
-          <Formik
-            initialValues={initialValues}
-            validationSchema={userSchema}
-            onSubmit={handleRegister}>
-            {({
-              values,
-              errors,
-              touched,
-              isValid,
-              handleChange,
-              handleBlur,
-              handleSubmit,
-            }) => (
-              <View>
-                <TextInput
-                  style={styles.input}
-                  placeholder="First Name"
-                  value={values.firstName}
-                  onChangeText={handleChange('firstName')}
-                  onBlur={handleBlur('firstName')}
-                />
-                {touched.firstName && errors.firstName &&
-                  <Text style={styles.errorText}>{errors.firstName}</Text>
-                }
-
-                <TextInput
-                  style={styles.input}
-                  placeholder="Middle Name"
-                  value={values.middleName}
-                  onChangeText={handleChange('middleName')}
-                  onBlur={handleBlur('middleName')}
-                />
-
-                <TextInput
-                  style={styles.input}
-                  placeholder="Last Name"
-                  value={values.lastName}
-                  onChangeText={handleChange('lastName')}
-                  onBlur={handleBlur('lastName')}
-                />
-                {touched.lastName && errors.lastName &&
-                  <Text style={styles.errorText}>{errors.lastName}</Text>
-                }
-
-                <TextInput
-                  style={styles.input}
-                  placeholder="Username"
-                  value={values.username}
-                  onChangeText={handleChange('username')}
-                  onBlur={handleBlur('username')}
-                />
-                {touched.username && errors.username &&
-                  <Text style={styles.errorText}>{errors.username}</Text>
-                }
-
-                <TextInput
-                  style={styles.input}
-                  placeholder="Email"
-                  value={values.email}
-                  onChangeText={handleChange('email')}
-                  onBlur={handleBlur('email')}
-                  keyboardType="email-address"
-                />
-                {touched.email && errors.email &&
-                  <Text style={styles.errorText}>{errors.email}</Text>
-                }
-
-                <TextInput
-                  style={styles.input}
-                  placeholder="Password"
-                  value={values.password}
-                  onChangeText={handleChange('password')}
-                  onBlur={handleBlur('password')}
-                  secureTextEntry
-                />
-                {touched.password && errors.password &&
-                  <Text style={styles.errorText}>{errors.password}</Text>
-                }
-
-                <TouchableOpacity
-                  style={[styles.button, { backgroundColor: '#0f52ba', marginBottom: 16 }]}
-                  onPress={handleSubmit}
-                  disabled={!isValid}>
-                  <Text style={styles.buttonText}>Register</Text>
-                </TouchableOpacity>
-              </View>
-            )}
-          </Formik>
+    <SafeAreaView style={styles.container}>
+      <ScrollView>
+        <View style={styles.header}>
+          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+            <Icon name="arrow-back" size={30} color="white" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Register</Text>
         </View>
-      </SafeAreaView>
-    </ScrollView>
+
+        <View style={styles.profileContainer}>
+          {user.avatar ? (
+            <Image source={{ uri: user.avatar }} style={styles.avatar} />
+          ) : (
+            <View style={styles.avatarPlaceholder}>
+              <Text style={styles.avatarPlaceholderText}>No Image</Text>
+            </View>
+          )}
+          <TouchableOpacity style={styles.editAvatarButton} onPress={selectImage}>
+            <Text style={styles.editAvatarText}>Add Profile Picture</Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.formContainer}>
+          <Text style={styles.label}>Username</Text>
+          <TextInput
+            style={styles.input}
+            value={user.username}
+            onChangeText={(text) => setUser({ ...user, username: text })}
+          />
+
+          <Text style={styles.label}>Email</Text>
+          <TextInput
+            style={styles.input}
+            value={user.email}
+            onChangeText={(text) => setUser({ ...user, email: text })}
+            keyboardType="email-address"
+          />
+
+          <Text style={styles.label}>First Name</Text>
+          <TextInput
+            style={styles.input}
+            value={user.firstName}
+            onChangeText={(text) => setUser({ ...user, firstName: text })}
+          />
+
+          <Text style={styles.label}>Middle Name</Text>
+          <TextInput
+            style={styles.input}
+            value={user.middleName}
+            onChangeText={(text) => setUser({ ...user, middleName: text })}
+          />
+
+          <Text style={styles.label}>Last Name</Text>
+          <TextInput
+            style={styles.input}
+            value={user.lastName}
+            onChangeText={(text) => setUser({ ...user, lastName: text })}
+          />
+
+          <Text style={styles.label}>Region</Text>
+          <TextInput
+            style={styles.input}
+            value={user.region}
+            onChangeText={(text) => setUser({ ...user, region: text })}
+          />
+          
+          <Text style={styles.label}>Password</Text>
+          <TextInput
+            style={styles.input}
+            value={user.password}
+            onChangeText={(text) => setUser({ ...user, password: text })}
+            secureTextEntry
+          />
+
+          <Text style={styles.label}>Confirm Password</Text>
+          <TextInput
+            style={styles.input}
+            value={user.confirmPassword}
+            onChangeText={(text) => setUser({ ...user, confirmPassword: text })}
+            secureTextEntry
+          />
+
+          
+
+          <TouchableOpacity style={styles.registerButton} onPress={handleRegister}>
+            <Text style={styles.registerButtonText}>Register</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  scrollView: {
-    flexGrow: 1,
-    backgroundColor: '#000000',
-    height: '100%',
-  },
-  safeArea: {
-    flex: 1,
-  },
   container: {
     flex: 1,
-    justifyContent: 'center',
-    padding: 16,
+    backgroundColor: '#1a1b2b',
+    padding: 15,
   },
-  title: {
-    fontSize: 24,
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  backButton: {
+    marginRight: 20,
+  },
+  headerTitle: {
+    fontSize: 22,
+    color: 'white',
     fontWeight: 'bold',
-    marginBottom: 32,
-    textAlign: 'center',
-    color: '#fff',
+  },
+  profileContainer: {
+    alignItems: 'center',
+    marginBottom: 30,
+  },
+  avatar: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    borderWidth: 2,
+    borderColor: 'white',
+    marginBottom: 10,
+  },
+  avatarPlaceholder: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    borderWidth: 2,
+    borderColor: 'white',
+    marginBottom: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#333',
+  },
+  avatarPlaceholderText: {
+    color: 'white',
+    fontSize: 16,
+  },
+  editAvatarButton: {
+    backgroundColor: '#333',
+    paddingVertical: 5,
+    paddingHorizontal: 15,
+    borderRadius: 5,
+  },
+  editAvatarText: {
+    color: 'white',
+    fontSize: 16,
+  },
+  formContainer: {
+    marginBottom: 30,
+  },
+  label: {
+    fontSize: 16,
+    color: 'white',
+    marginBottom: 10,
   },
   input: {
-    height: 40,
-    borderColor: '#ccc',
-    borderWidth: 1,
-    borderRadius: 20,
-    paddingLeft: 8,
-    marginBottom: 16,
-    backgroundColor: '#fff',
-  },
-  button: {
-    height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderRadius: 20,
-    backgroundColor: '#0f52ba',
-  },
-  buttonText: {
-    color: '#fff',
+    backgroundColor: '#2a2b3c',
+    padding: 10,
+    borderRadius: 5,
+    color: 'white',
+    marginBottom: 20,
     fontSize: 16,
-    fontWeight: 'bold',
   },
-  errorText: {
-    fontSize: 12,
-    color: 'red',
+  registerButton: {
+    backgroundColor: '#333',
+    paddingVertical: 10,
+    borderRadius: 5,
+    alignItems: 'center',
+  },
+  registerButtonText: {
+    color: 'white',
+    fontSize: 18,
   },
 });

@@ -114,7 +114,7 @@ const Login = () => {
 
                 <TouchableOpacity
                   style={[styles.button, { backgroundColor: '#6c757d' }]}
-                  onPress={() => console.log('Navigate to register screen')}>
+                  onPress={() => navigation.navigate('Register')}>
                   <Text style={styles.buttonText}>Register</Text>
                 </TouchableOpacity>
               </View>

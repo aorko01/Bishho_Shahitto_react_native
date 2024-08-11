@@ -10,6 +10,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import NotificationIcon from '../components/NotificationIcon.tsx';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import axiosInstance from '../utils/axiosInstance.js';
 
@@ -58,9 +59,7 @@ export default function Home() {
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView>
-        <View style={styles.notification}>
-          <Icon name="notifications" size={30} color="white" />
-        </View>
+        <NotificationIcon />
         <TouchableOpacity onPress={() => navigation.openDrawer()}>
           <Image
             source={{

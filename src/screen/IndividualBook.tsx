@@ -259,9 +259,6 @@ export default function IndividualBook() {
           onPress={() => navigation.goBack()}>
           <Icon name="arrow-back" size={30} color="white" />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.notification}>
-          <Icon name="notifications" size={30} color="white" />
-        </TouchableOpacity>
         <View style={styles.bookHead}>
           <View style={styles.imageContainer}>
             <Image source={{uri: coverImage}} style={styles.bookCoverMain} />

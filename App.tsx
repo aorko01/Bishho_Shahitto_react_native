@@ -6,6 +6,7 @@ import IndividualBook from './src/screen/IndividualBook';
 import Catagory from './src/screen/Catagory';
 import BorrowedBooks from './src/screen/BorrowedBooks';
 import EditProfile from './src/screen/EditProffile';
+import Notifications from './src/screen/Notifications';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
@@ -22,6 +23,7 @@ function App() {
         <Stack.Screen name="Catagory" component={Catagory} />
         <Stack.Screen name="BorrowedBooks" component={BorrowedBooks} />
         <Stack.Screen name="EditProfile" component={EditProfile} />
+        <Stack.Screen name="Notifications" component={Notifications} />
       </Stack.Navigator>
     </NavigationContainer>
   );
