@@ -13,12 +13,14 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import NotificationIcon from '../components/NotificationIcon.tsx';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import axiosInstance from '../utils/axiosInstance.js';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function Home() {
   const navigation = useNavigation();
   const [topPicks, setTopPicks] = useState([]);
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(null);
 
   const fetchTopPicks = async () => {
     try {
@@ -42,10 +44,22 @@ export default function Home() {
     }
   };
 
+  const loadUserData = async () => {
+    try {
+      const storedUser = await AsyncStorage.getItem('user');
+      if (storedUser) {
+        setUser(JSON.parse(storedUser));
+      }
+    } catch (error) {
+      console.error('Error loading user data from AsyncStorage:', error);
+    }
+  };
+
   useFocusEffect(
     useCallback(() => {
       fetchTopPicks();
       fetchPreviousBorrows();
+      loadUserData(); // Load user data when the screen is focused
     }, [])
   );
 
@@ -63,12 +77,14 @@ export default function Home() {
         <TouchableOpacity onPress={() => navigation.openDrawer()}>
           <Image
             source={{
-              uri: 'https://encrypted-tbn2.gstatic.com/images?q=tbn:ANd9GcTP9hneBUzKcWY0lZAnnIP9-rPOWqP9lsVIO5iihMwrKsTcevg2OehToQ3wb-1z3FNIWJ4nWEqdd5AunJjSCdwTFbWgAW5mFSxlRp56Og',
+              uri: user?.avatar || 'https://encrypted-tbn2.gstatic.com/images?q=tbn:ANd9GcTP9hneBUzKcWY0lZAnnIP9-rPOWqP9lsVIO5iihMwrKsTcevg2OehToQ3wb-1z3FNIWJ4nWEqdd5AunJjSCdwTFbWgAW5mFSxlRp56Og',
             }}
             style={styles.avatar}
           />
         </TouchableOpacity>
-        <Text style={styles.Hello}>Hello Ali!</Text>
+        <Text style={styles.Hello}>
+          Hello {user?.lastName || 'Ali'}!
+        </Text>
         <TouchableOpacity
           style={styles.searchTouchable}
           onPress={() => navigation.navigate('Search')}>
@@ -116,9 +132,9 @@ export default function Home() {
           <View style={styles.TrendingContainer}>
             <Text style={styles.Heading}>Trending</Text>
             <TouchableOpacity
-            onPress={() =>
-              navigation.push('Catagory', { category: 'Top picks' })
-            }>
+              onPress={() =>
+                navigation.push('Catagory', { category: 'Top picks' })
+              }>
               <Text style={styles.all}>See all</Text>
             </TouchableOpacity>
           </View>
@@ -183,6 +199,7 @@ export default function Home() {
     </SafeAreaView>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: {

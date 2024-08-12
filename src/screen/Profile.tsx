@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   SafeAreaView,
   ScrollView,
@@ -10,16 +10,30 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useNavigation } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function Profile() {
   const navigation = useNavigation();
+  const [user, setUser] = useState({
+    username: 'Loading...',
+    email: 'Loading...',
+    avatar: 'https://encrypted-tbn2.gstatic.com/images?q=tbn:ANd9GcTP9hneBUzKcWY0lZAnnIP9-rPOWqP9lsVIO5iihMwrKsTcevg2OehToQ3wb-1z3FNIWJ4nWEqdd5AunJjSCdwTFbWgAW5mFSxlRp56Og',
+  });
 
-  const user = {
-    name: 'Ali',
-    email: 'ali@example.com',
-    avatar:
-      'https://encrypted-tbn2.gstatic.com/images?q=tbn:ANd9GcTP9hneBUzKcWY0lZAnnIP9-rPOWqP9lsVIO5iihMwrKsTcevg2OehToQ3wb-1z3FNIWJ4nWEqdd5AunJjSCdwTFbWgAW5mFSxlRp56Og',
-  };
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const userData = await AsyncStorage.getItem('user');
+        if (userData) {
+          setUser(JSON.parse(userData));
+        }
+      } catch (error) {
+        console.error('Failed to load user data:', error);
+      }
+    };
+
+    fetchUserData();
+  }, []);
 
   const likedBooks = [
     {
@@ -55,7 +69,10 @@ export default function Profile() {
     <SafeAreaView style={styles.container}>
       <ScrollView>
         <View style={styles.header}>
-          <TouchableOpacity style={styles.backButton}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => navigation.goBack()} // Navigate back when back button is pressed
+          >
             <Icon name="arrow-back" size={30} color="white" />
           </TouchableOpacity>
           <TouchableOpacity style={styles.menuButton}>
@@ -65,7 +82,7 @@ export default function Profile() {
 
         <View style={styles.profileContainer}>
           <Image source={{ uri: user.avatar }} style={styles.avatar} />
-          <Text style={styles.username}>{user.name}</Text>
+          <Text style={styles.username}>{user.username}</Text>
           <Text style={styles.email}>{user.email}</Text>
         </View>
 
@@ -108,7 +125,6 @@ export default function Profile() {
     </SafeAreaView>
   );
 }
-
 
 const styles = StyleSheet.create({
   container: {

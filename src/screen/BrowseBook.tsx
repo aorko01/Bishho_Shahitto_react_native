@@ -10,6 +10,7 @@ import {
   ActivityIndicator,
   TextInput,
   Modal,
+  Switch,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
@@ -29,8 +30,9 @@ export default function BrowseBook(props) {
   const [dropdownVisible, setDropdownVisible] = useState(false);
   const [sortDropdownVisible, setSortDropdownVisible] = useState(false);
   const [sortOption, setSortOption] = useState('Alphabetically');
-
   const [genres, setGenres] = useState([]);
+  const [showAvailableOnly, setShowAvailableOnly] = useState(false);
+
   const sortOptions = ['Most Borrowed', 'Rating', 'Alphabetically'];
 
   useEffect(() => {
@@ -42,9 +44,8 @@ export default function BrowseBook(props) {
           endpoint = '/books/get-all-books-alphabetically';
         } else if (sortOption === 'Most Borrowed') {
           endpoint = '/books/get-books-sorted-by-borrows';
-        }
-        else if(sortOption === 'Rating'){
-            endpoint='/books/get-books-sorted-by-ratings';
+        } else if (sortOption === 'Rating') {
+          endpoint = '/books/get-books-sorted-by-ratings';
         }
 
         const response = await axiosInstance.get(endpoint);
@@ -70,7 +71,6 @@ export default function BrowseBook(props) {
 
   useFocusEffect(
     useCallback(() => {
-      // Reset genre and sortOption when the page is unfocused (navigated away)
       return () => {
         setGenre('');
         setSortOption('Alphabetically');
@@ -82,8 +82,10 @@ export default function BrowseBook(props) {
     (book) =>
       (!genre || book.genre === genre) &&
       (!author || book.author.toLowerCase().includes(author.toLowerCase())) &&
-      (!bookName || book.title.toLowerCase().includes(bookName.toLowerCase()))
+      (!bookName || book.title.toLowerCase().includes(bookName.toLowerCase())) &&
+      (!showAvailableOnly || book.canBeBorrowed) // Updated condition here
   );
+  
 
   const handleSelectGenre = (selectedGenre) => {
     setGenre(selectedGenre);
@@ -144,6 +146,17 @@ export default function BrowseBook(props) {
             </TouchableOpacity>
           </View>
         </View>
+
+        <View style={styles.toggleContainer}>
+          <Text style={styles.toggleLabel}>Show Available Books Only</Text>
+          <Switch
+            value={showAvailableOnly}
+            onValueChange={setShowAvailableOnly}
+            thumbColor={showAvailableOnly ? 'green' : 'grey'}
+            trackColor={{ false: 'grey', true: 'green' }}
+          />
+        </View>
+
         <Modal
           visible={dropdownVisible}
           transparent={true}
@@ -191,8 +204,17 @@ export default function BrowseBook(props) {
         </Modal>
 
         {filteredBooks.map((book, index) => (
-            <Book key={index} book={book} />
+          <View
+            key={index}
+            style={[
+              styles.bookContainer,
+              !book.canBeBorrowed && !showAvailableOnly && { opacity: 0.9 }, // Apply dimming only when showAvailableOnly is false
+            ]}
+          >
+            <Book book={book} />
+          </View>
         ))}
+        
 
         {loading && (
           <ActivityIndicator
@@ -265,65 +287,39 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     flex: 1,
   },
+  toggleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginHorizontal: 20,
+    marginBottom: 10,
+  },
+  toggleLabel: {
+    color: 'white',
+    fontSize: 18,
+  },
   modalOverlay: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: 'rgba(0,0,0,0.5)',
   },
   dropdownMenu: {
-    backgroundColor: '#333',
-    borderRadius: 5,
-    width: '80%',
-    padding: 10,
+    backgroundColor: '#3a3c51',
+    borderRadius: 10,
+    padding: 20,
   },
   dropdownItem: {
-    paddingVertical: 10,
+    padding: 10,
   },
   dropdownItemText: {
     color: 'white',
     fontSize: 16,
   },
   bookContainer: {
-    flexDirection: 'row',
-    padding: 10,
-    borderBottomColor: '#444',
-    borderBottomWidth: 1,
-  },
-  bookCover: {
-    width: 100,
-    height: 150,
+    margin: 10,
+    backgroundColor: '#2a2b3d',
     borderRadius: 10,
-  },
-  description: {
-    flex: 1,
-    marginLeft: 10,
-  },
-  buttonContainer: {
-    justifyContent: 'center',
-  },
-  borrowButton: {
-    backgroundColor: 'red',
-    borderRadius: 5,
-    paddingVertical: 10,
-    paddingHorizontal: 15,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  returnedLabel: {
-    backgroundColor: '#888',
-    borderRadius: 5,
-    paddingVertical: 10,
-    paddingHorizontal: 15,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  buttonText: {
-    color: 'white',
-    fontSize: 16,
-  },
-  labelText: {
-    color: 'white',
-    fontSize: 16,
+    padding: 10,
   },
 });
