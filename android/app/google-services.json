@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "868098087063",
+    "project_id": "bissho-shahitto",
+    "storage_bucket": "bissho-shahitto.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:868098087063:android:02b9d12ae088c02c40f1d2",
+        "android_client_info": {
+          "package_name": "com.bissho_shahitto_react_native"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCENgxs4UYGGb3zPPhuUypEhnVRi-1NXSU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

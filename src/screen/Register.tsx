@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import messaging from '@react-native-firebase/messaging';
 import {
   SafeAreaView,
   ScrollView,
@@ -8,10 +9,12 @@ import {
   TextInput,
   Image,
   TouchableOpacity,
+  ActivityIndicator, // Import ActivityIndicator
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { launchImageLibrary } from 'react-native-image-picker';
 import axios from 'axios'; // Import axios
+
 const API_URI = 'http://10.0.2.2:8000/api/v1';
 
 export default function Register({ navigation }) {
@@ -26,6 +29,8 @@ export default function Register({ navigation }) {
     avatar: '', // No default image
     region: '', // New field for region
   });
+
+  const [loading, setLoading] = useState(false); // Loading state
 
   const selectImage = () => {
     const options = {
@@ -48,11 +53,16 @@ export default function Register({ navigation }) {
   };
 
   const handleRegister = async () => {
+    if (user.password !== user.confirmPassword) {
+      alert('Passwords do not match');
+      return;
+    }
+
+    setLoading(true); // Start loading
+
     try {
-      if (user.password !== user.confirmPassword) {
-        alert('Passwords do not match');
-        return;
-      }
+      // Obtain FCM token
+      const fcmToken = await messaging().getToken();
 
       const formData = new FormData();
       formData.append('username', user.username);
@@ -62,12 +72,13 @@ export default function Register({ navigation }) {
       formData.append('lastName', user.lastName);
       formData.append('password', user.password);
       formData.append('Region', user.region); // Add region to form data
+      formData.append('fcmToken', fcmToken); // Add FCM token to form data
 
       if (user.avatar) {
         formData.append('avatar', {
           uri: user.avatar,
-          type: 'image/jpeg', // Adjust based on the image type
-          name: 'avatar.jpg', // Adjust the file name if needed
+          type: 'image/jpeg',
+          name: 'avatar.jpg',
         });
       }
 
@@ -80,11 +91,13 @@ export default function Register({ navigation }) {
 
       if (response.status === 201) {
         alert('Registration successful!');
-        navigation.navigate('Login'); // Navigate to login or another screen
+        navigation.navigate('Login');
       }
     } catch (error) {
       console.error('Registration error:', error);
       alert('Registration failed');
+    } finally {
+      setLoading(false); // Stop loading
     }
   };
 
@@ -171,11 +184,13 @@ export default function Register({ navigation }) {
             secureTextEntry
           />
 
-          
-
-          <TouchableOpacity style={styles.registerButton} onPress={handleRegister}>
-            <Text style={styles.registerButtonText}>Register</Text>
-          </TouchableOpacity>
+          {loading ? (
+            <ActivityIndicator size="large" color="#ffffff" style={styles.loadingIndicator} />
+          ) : (
+            <TouchableOpacity style={styles.registerButton} onPress={handleRegister}>
+              <Text style={styles.registerButtonText}>Register</Text>
+            </TouchableOpacity>
+          )}
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -263,5 +278,8 @@ const styles = StyleSheet.create({
   registerButtonText: {
     color: 'white',
     fontSize: 18,
+  },
+  loadingIndicator: {
+    marginVertical: 20,
   },
 });
