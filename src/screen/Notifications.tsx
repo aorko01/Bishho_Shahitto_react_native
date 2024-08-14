@@ -1,38 +1,52 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { SafeAreaView, ScrollView, StyleSheet, Text, View, Image, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import axiosInstance from './../utils/axiosInstance';
 
 export default function Notifications() {
   const navigation = useNavigation();
+  const [notifications, setNotifications] = useState([]);
 
-  // Dummy data for notifications
-  const notifications = [
-    {
-      id: 1,
-      message: 'Your borrowed book "The Great Gatsby" is due in 3 days.',
-      time: '2h ago',
-      icon: 'https://img.icons8.com/ios-filled/100/clock.png',
-    },
-    {
-      id: 2,
-      message: 'New book "Atomic Habits" has been added to the Top Picks.',
-      time: '5h ago',
-      icon: 'https://img.icons8.com/ios-filled/100/star.png',
-    },
-    {
-      id: 3,
-      message: 'You have successfully borrowed "1984" by George Orwell.',
-      time: '1d ago',
-      icon: 'https://img.icons8.com/ios-filled/100/book.png',
-    },
-    {
-      id: 4,
-      message: 'Your liked book "Sapiens" has received new reviews.',
-      time: '3d ago',
-      icon: 'https://img.icons8.com/ios-filled/100/chat.png',
-    },
-  ];
+  useEffect(() => {
+    // Fetch notifications from the backend
+    const fetchNotifications = async () => {
+      try {
+        const response = await axiosInstance.get('/users/get-notification'); // Replace with your endpoint
+        const { viewedNotifications, notViewedNotifications } = response.data;
+
+        // Combine viewed and not viewed notifications
+        setNotifications([...notViewedNotifications, ...viewedNotifications]);
+
+        // If there are not viewed notifications, mark them as viewed
+        if (notViewedNotifications.length > 0) {
+          await axiosInstance.post('/users/mark-notification-as-viewed', {
+            notViewedNotifications,
+          });
+        }
+      } catch (error) {
+        console.error('Failed to fetch notifications:', error);
+      }
+    };
+
+    fetchNotifications();
+  }, []);
+
+  // Function to get the icon based on notification type
+  const getIconByType = (type) => {
+    switch (type) {
+      case 'return':
+        return 'https://img.icons8.com/ios-filled/100/clock.png';
+      case 'Can Borrow':
+        return 'https://img.icons8.com/ios-filled/100/star.png';
+      case 'borrow':
+        return 'https://img.icons8.com/ios-filled/100/book.png';
+      case 'liked':
+        return 'https://img.icons8.com/ios-filled/100/chat.png';
+      default:
+        return 'https://img.icons8.com/ios-filled/100/info.png';
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -45,11 +59,20 @@ export default function Notifications() {
         </TouchableOpacity>
         <Text style={styles.heading}>Notifications</Text>
         {notifications.map((notification) => (
-          <View key={notification.id} style={styles.notificationItem}>
-            <Image source={{ uri: notification.icon }} style={styles.icon} />
+          <View 
+            key={notification._id} 
+            style={[
+              styles.notificationItem, 
+              notification.viewed ? styles.viewed : styles.notViewed
+            ]}
+          >
+            <Image 
+              source={{ uri: getIconByType(notification.notificationType) }} 
+              style={styles.icon} 
+            />
             <View style={styles.textContainer}>
-              <Text style={styles.message}>{notification.message}</Text>
-              <Text style={styles.time}>{notification.time}</Text>
+              <Text style={styles.message}>{notification.notificationText}</Text>
+              <Text style={styles.time}>{new Date(notification.createdAt).toLocaleTimeString()}</Text>
             </View>
           </View>
         ))}
@@ -99,4 +122,11 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginTop: 5,
   },
+  viewed: {
+    opacity: 0.6,  // Make viewed notifications slightly transparent
+  },
+  notViewed: {
+    opacity: 1,    // Keep not viewed notifications fully opaque
+  },
 });
+

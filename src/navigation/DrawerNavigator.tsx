@@ -17,11 +17,13 @@ function CustomDrawerContent(props) {
     try {
       await axiosInstance.post('/users/logout');
       await AsyncStorage.removeItem('accessToken');  // Remove access token from AsyncStorage
+      setIsAuthenticated(false);  // Update authentication status
       navigation.replace('Login');  // Navigate to the Login screen
     } catch (error) {
       console.error('Error during logout:', error);
     }
   };
+  
 
   return (
     <DrawerContentScrollView {...props} contentContainerStyle={styles.drawerContainer}>

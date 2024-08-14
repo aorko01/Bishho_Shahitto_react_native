@@ -13,6 +13,7 @@ import { useNavigation } from '@react-navigation/native';
 import { Formik } from 'formik';
 import * as Yup from 'yup';
 import axios from 'axios';
+import { CommonActions } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const API_URI = 'http://10.0.2.2:8000/api/v1';
@@ -33,16 +34,23 @@ const Login = () => {
         username: values.username,
         password: values.password,
       });
-
+  
       const { accessToken, refreshToken, user } = response.data.data;
-
+  
       await AsyncStorage.setItem('accessToken', accessToken);
       await AsyncStorage.setItem('refreshToken', refreshToken);
       await AsyncStorage.setItem('user', JSON.stringify(user));
-
+  
       console.log('Login successful');
       console.log('User:', user);
-      navigation.navigate('Main'); // Navigate to the Home screen
+  
+      // Reset the navigation stack and navigate to 'Main'
+      navigation.dispatch(
+        CommonActions.reset({
+          index: 0,
+          routes: [{ name: 'Main' }],
+        })
+      );
     } catch (error) {
       console.error('Error logging in:', error);
       Alert.alert('Error', 'Failed to log in. Please try again.');
