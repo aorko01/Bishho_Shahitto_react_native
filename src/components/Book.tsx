@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   StyleSheet,
   Modal,
-  ScrollView,
   TextInput,
   TouchableWithoutFeedback,
 } from 'react-native';
@@ -17,6 +16,9 @@ export default function Book({book, onBookBorrowed}) {
   const navigation = useNavigation();
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedDays, setSelectedDays] = useState(7);
+  const [returnModalVisible, setReturnModalVisible] = useState(false);
+  const [extendModalVisible, setExtendModalVisible] = useState(false);
+  
 
   const renderButtons = () => {
     if (book.toReturn === undefined) {
@@ -38,10 +40,14 @@ export default function Book({book, onBookBorrowed}) {
     } else if (book.toReturn === true) {
       return (
         <View style={styles.actionButtons}>
-          <TouchableOpacity style={styles.returnButton}>
+          <TouchableOpacity
+            style={styles.returnButton}
+            onPress={() => setReturnModalVisible(true)}>
             <Text style={styles.buttonText}>Return</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.extendButton}>
+          <TouchableOpacity
+            style={styles.extendButton}
+            onPress={() => setExtendModalVisible(true)}>
             <Text style={styles.buttonText}>Extend</Text>
           </TouchableOpacity>
         </View>
@@ -61,6 +67,22 @@ export default function Book({book, onBookBorrowed}) {
     }
   };
 
+  const handleReturnBook = async () => {
+    try {
+      const response = await axiosInstance.post('/books/return-book', {
+        copyBookId: book.copyID,
+      });
+      console.log('Book returned successfully.');
+      console.log(response.data); // Handle the response if needed
+      onBookBorrowed(); // Trigger re-fetch of books in Category component
+    } catch (error) {
+      console.error('Error returning the book:', error);
+      // Optionally handle the error, e.g., show an alert
+    } finally {
+      setReturnModalVisible(false);
+    }
+  };
+
   const handleConfirmBorrow = async () => {
     try {
       const response = await axiosInstance.post('/books/borrow-book', {
@@ -77,7 +99,25 @@ export default function Book({book, onBookBorrowed}) {
     }
   };
 
+  const handleExtendBorrow = async () => {
+    try {
+      const response = await axiosInstance.post('/books/extend-borrow', {
+        borrowId: book.borrowID, // Ensure borrowID is passed from props
+        additionalDays: selectedDays,
+      });
+      console.log('Borrow period extended successfully.');
+      console.log(response.data); // Handle the response if needed
+      setExtendModalVisible(false);
+      onBookBorrowed(); // Trigger re-fetch of books in Category component
+    } catch (error) {
+      console.error('Error extending borrow period:', error);
+      // Optionally handle the error, e.g., show an alert
+    }
+  };
+
   return (
+
+
     <TouchableOpacity onPress={() => navigation.push('IndividualBook', {book})}>
       <View style={styles.bookContainer}>
         <View>
@@ -103,7 +143,7 @@ export default function Book({book, onBookBorrowed}) {
         </View>
         <View style={styles.buttonContainer}>{renderButtons()}</View>
 
-        {/* Modal for selecting days */}
+        {/* Modal for selecting days to borrow */}
         <Modal
           transparent={true}
           visible={modalVisible}
@@ -136,6 +176,74 @@ export default function Book({book, onBookBorrowed}) {
                   <TouchableOpacity
                     style={styles.confirmButton}
                     onPress={handleConfirmBorrow}>
+                    <Text style={styles.confirmButtonText}>Confirm</Text>
+                  </TouchableOpacity>
+                </View>
+              </TouchableWithoutFeedback>
+            </View>
+          </TouchableWithoutFeedback>
+        </Modal>
+
+        {/* Modal for confirming return */}
+        <Modal
+          transparent={true}
+          visible={returnModalVisible}
+          animationType="slide"
+          onRequestClose={() => setReturnModalVisible(false)}>
+          <TouchableWithoutFeedback
+            onPress={() => setReturnModalVisible(false)}>
+            <View style={styles.modalOverlay}>
+              <TouchableWithoutFeedback onPress={() => {}}>
+                <View style={styles.modalContent}>
+                  <Text style={styles.modalTitle}>Confirm Return</Text>
+                  <Text style={styles.modalText}>
+                    Are you sure you want to return this book?
+                  </Text>
+                  <TouchableOpacity
+                    style={styles.confirmButton}
+                    onPress={handleReturnBook}>
+                    <Text style={styles.confirmButtonText}>Confirm</Text>
+                  </TouchableOpacity>
+                </View>
+              </TouchableWithoutFeedback>
+            </View>
+          </TouchableWithoutFeedback>
+        </Modal>
+
+        {/* Modal for extending borrow period */}
+        <Modal
+          transparent={true}
+          visible={extendModalVisible}
+          animationType="slide"
+          onRequestClose={() => setExtendModalVisible(false)}>
+          <TouchableWithoutFeedback
+            onPress={() => setExtendModalVisible(false)}>
+            <View style={styles.modalOverlay}>
+              <TouchableWithoutFeedback onPress={() => {}}>
+                <View style={styles.modalContent}>
+                  <Text style={styles.modalTitle}>Extend Borrow</Text>
+                  <View style={styles.daySelector}>
+                    <TouchableOpacity
+                      style={styles.dayAdjustButton}
+                      onPress={() => handleDaySelection(selectedDays - 1)}>
+                      <Text style={styles.adjustButtonText}>-</Text>
+                    </TouchableOpacity>
+                    <TextInput
+                      style={styles.dayInput}
+                      value={String(selectedDays)}
+                      onChangeText={text => handleDaySelection(Number(text))}
+                      keyboardType="number-pad"
+                    />
+                    <TouchableOpacity
+                      style={styles.dayAdjustButton}
+                      onPress={() => handleDaySelection(selectedDays + 1)}>
+                      <Text style={styles.adjustButtonText}>+</Text>
+                    </TouchableOpacity>
+                  </View>
+                  <Text style={styles.modalText}>days</Text>
+                  <TouchableOpacity
+                    style={styles.confirmButton}
+                    onPress={handleExtendBorrow}>
                     <Text style={styles.confirmButtonText}>Confirm</Text>
                   </TouchableOpacity>
                 </View>
@@ -271,5 +379,11 @@ const styles = StyleSheet.create({
   confirmButtonText: {
     color: 'white',
     fontSize: 16,
+  },
+  modalText: {
+    color: 'white',
+    fontSize: 16,
+    textAlign: 'center',
+    marginVertical: 10,
   },
 });

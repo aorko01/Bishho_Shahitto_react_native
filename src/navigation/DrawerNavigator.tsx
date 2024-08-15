@@ -16,8 +16,8 @@ function CustomDrawerContent(props) {
   const handleLogout = async () => {
     try {
       await axiosInstance.post('/users/logout');
-      await AsyncStorage.removeItem('accessToken');  // Remove access token from AsyncStorage
-      setIsAuthenticated(false);  // Update authentication status
+      await AsyncStorage.removeItem('accessToken');  // Remove access token from 
+      await AsyncStorage.removeItem('refreshToken'); // Remove refresh token
       navigation.replace('Login');  // Navigate to the Login screen
     } catch (error) {
       console.error('Error during logout:', error);

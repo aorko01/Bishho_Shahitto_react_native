@@ -28,6 +28,8 @@ export default function Category() {
     fetchBooks();
   }, []);
 
+  
+
   const fetchBooks = async () => {
     setLoading(true);
     try {
@@ -44,6 +46,11 @@ export default function Category() {
     }
   };
 
+  const handleBookReturned = () => {
+    // Re-fetch the books after a book is borrowed, without resetting the list
+    fetchBooks(true);
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView>
@@ -56,7 +63,7 @@ export default function Category() {
         <Text style={styles.HeadText}>{category}</Text>
 
         {books.map((book, index) => (
-          <Book key={index} book={book} />
+          <Book key={index} book={book} onBookBorrowed={handleBookReturned} />
         ))}
 
         {loading && (

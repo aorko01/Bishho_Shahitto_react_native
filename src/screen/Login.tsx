@@ -8,6 +8,8 @@ import {
   TextInput,
   TouchableOpacity,
   Alert,
+  Modal,
+  TouchableWithoutFeedback,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Formik } from 'formik';
@@ -27,6 +29,8 @@ const Login = () => {
   const navigation = useNavigation();
   const [usernameFocused, setUsernameFocused] = useState(false);
   const [passwordFocused, setPasswordFocused] = useState(false);
+  const [rememberMeVisible, setRememberMeVisible] = useState(false);
+  const [rememberMeToken, setRememberMeToken] = useState(null);
 
   const handleLogin = async values => {
     try {
@@ -38,23 +42,33 @@ const Login = () => {
       const { accessToken, refreshToken, user } = response.data.data;
   
       await AsyncStorage.setItem('accessToken', accessToken);
-      await AsyncStorage.setItem('refreshToken', refreshToken);
       await AsyncStorage.setItem('user', JSON.stringify(user));
   
       console.log('Login successful');
       console.log('User:', user);
   
-      // Reset the navigation stack and navigate to 'Main'
-      navigation.dispatch(
-        CommonActions.reset({
-          index: 0,
-          routes: [{ name: 'Main' }],
-        })
-      );
+      // Show Remember Me modal and pass the refreshToken
+      setRememberMeVisible(true);
+      setRememberMeToken(refreshToken);
     } catch (error) {
       console.error('Error logging in:', error);
       Alert.alert('Error', 'Failed to log in. Please try again.');
     }
+  };
+
+  const handleRememberMe = async (remember) => {
+    if (remember && rememberMeToken) {
+      await AsyncStorage.setItem('refreshToken', rememberMeToken);
+    }
+
+    setRememberMeVisible(false);
+    // Reset the navigation stack and navigate to 'Main'
+    navigation.dispatch(
+      CommonActions.reset({
+        index: 0,
+        routes: [{ name: 'Main' }],
+      })
+    );
   };
 
   return (
@@ -96,6 +110,9 @@ const Login = () => {
                     handleBlur('username');
                   }}
                 />
+                {errors.username && touched.username && (
+                  <Text style={styles.errorText}>{errors.username}</Text>
+                )}
                 <TextInput
                   style={[
                     styles.input,
@@ -112,6 +129,9 @@ const Login = () => {
                     handleBlur('password');
                   }}
                 />
+                {errors.password && touched.password && (
+                  <Text style={styles.errorText}>{errors.password}</Text>
+                )}
                 <TouchableOpacity
                   style={[
                     styles.button,
@@ -131,6 +151,36 @@ const Login = () => {
           </Formik>
         </View>
       </SafeAreaView>
+
+      {/* Remember Me Modal */}
+      <Modal
+        transparent={true}
+        visible={rememberMeVisible}
+        animationType="slide"
+        onRequestClose={() => setRememberMeVisible(false)}>
+        <TouchableWithoutFeedback onPress={() => setRememberMeVisible(false)}>
+          <View style={styles.modalOverlay}>
+            <TouchableWithoutFeedback onPress={() => {}}>
+              <View style={styles.modalContent}>
+                <Text style={styles.modalTitle}>Remember Me</Text>
+                <Text style={styles.modalText}>Remember me on this device?</Text>
+                <View style={styles.modalButtonContainer}>
+                  <TouchableOpacity
+                    style={[styles.modalButton, { backgroundColor: '#4e4890' }]}
+                    onPress={() => handleRememberMe(true)}>
+                    <Text style={styles.buttonText}>Yes</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.modalButton, { backgroundColor: '#6c757d' }]}
+                    onPress={() => handleRememberMe(false)}>
+                    <Text style={styles.buttonText}>No</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </TouchableWithoutFeedback>
+          </View>
+        </TouchableWithoutFeedback>
+      </Modal>
     </ScrollView>
   );
 };
@@ -171,6 +221,12 @@ const styles = StyleSheet.create({
     borderColor: '#0f52ba',
     height: 50,
   },
+  errorText: {
+    color: 'red',
+    fontSize: 12,
+    marginBottom: 16,
+    marginLeft: 8,
+  },
   button: {
     height: 40,
     justifyContent: 'center',
@@ -181,6 +237,43 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.7)',
+  },
+  modalContent: {
+    width: 300,
+    backgroundColor: '#1a1b2b',
+    borderRadius: 10,
+    padding: 20,
+    alignItems: 'center',
+  },
+  modalTitle: {
+    fontSize: 20,
+    color: 'white',
+    marginBottom: 20,
+  },
+  modalText: {
+    color: 'white',
+    fontSize: 16,
+    textAlign: 'center',
+    marginVertical: 10,
+  },
+  modalButtonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+  },
+  modalButton: {
+    flex: 1,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 20,
+    marginHorizontal: 5,
   },
 });
 

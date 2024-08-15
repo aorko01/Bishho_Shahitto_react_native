@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, {useState, useEffect, useCallback} from 'react';
 import {
   Image,
   SafeAreaView,
@@ -13,7 +13,7 @@ import {
   Switch,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import {useNavigation, useFocusEffect} from '@react-navigation/native';
 import Book from '../components/Book';
 import NotificationIcon from '../components/NotificationIcon';
 import axiosInstance from '../utils/axiosInstance';
@@ -35,39 +35,45 @@ export default function BrowseBook(props) {
 
   const sortOptions = ['Most Borrowed', 'Rating', 'Alphabetically'];
 
+  const fetchBooks = async () => {
+    setLoading(true);
+    try {
+      let endpoint;
+      if (sortOption === 'Alphabetically') {
+        endpoint = '/books/get-all-books-alphabetically';
+      } else if (sortOption === 'Most Borrowed') {
+        endpoint = '/books/get-books-sorted-by-borrows';
+      } else if (sortOption === 'Rating') {
+        endpoint = '/books/get-books-sorted-by-ratings';
+      }
+
+      const response = await axiosInstance.get(endpoint);
+      setBooks(response.data);
+    } catch (error) {
+      console.error('Error fetching books:', error);
+    }
+    setLoading(false);
+  };
+
+  const getGenres = async () => {
+    try {
+      const response = await axiosInstance.get('/books/get-all-genres');
+      setGenres(response.data.data);
+    } catch (error) {
+      console.error('Error fetching genres:', error);
+    }
+  };
   useEffect(() => {
-    const fetchBooks = async () => {
-      setLoading(true);
-      try {
-        let endpoint;
-        if (sortOption === 'Alphabetically') {
-          endpoint = '/books/get-all-books-alphabetically';
-        } else if (sortOption === 'Most Borrowed') {
-          endpoint = '/books/get-books-sorted-by-borrows';
-        } else if (sortOption === 'Rating') {
-          endpoint = '/books/get-books-sorted-by-ratings';
-        }
-
-        const response = await axiosInstance.get(endpoint);
-        setBooks(response.data);
-      } catch (error) {
-        console.error("Error fetching books:", error);
-      }
-      setLoading(false);
-    };
-
-    const getGenres = async () => {
-      try {
-        const response = await axiosInstance.get('/books/get-all-genres');
-        setGenres(response.data.data);
-      } catch (error) {
-        console.error('Error fetching genres:', error);
-      }
-    };
+   
 
     getGenres();
     fetchBooks();
   }, [sortOption]);
+
+  const handleBookBorrowed = () => {
+    // Re-fetch the books after a book is borrowed, without resetting the list
+    fetchBooks(true);
+  };
 
   useFocusEffect(
     useCallback(() => {
@@ -75,24 +81,24 @@ export default function BrowseBook(props) {
         setGenre('');
         setSortOption('Alphabetically');
       };
-    }, [])
+    }, []),
   );
 
   const filteredBooks = books.filter(
-    (book) =>
+    book =>
       (!genre || book.genre === genre) &&
       (!author || book.author.toLowerCase().includes(author.toLowerCase())) &&
-      (!bookName || book.title.toLowerCase().includes(bookName.toLowerCase())) &&
-      (!showAvailableOnly || book.canBeBorrowed) // Updated condition here
+      (!bookName ||
+        book.title.toLowerCase().includes(bookName.toLowerCase())) &&
+      (!showAvailableOnly || book.canBeBorrowed), // Updated condition here
   );
-  
 
-  const handleSelectGenre = (selectedGenre) => {
+  const handleSelectGenre = selectedGenre => {
     setGenre(selectedGenre);
     setDropdownVisible(false);
   };
 
-  const handleSelectSortOption = (selectedOption) => {
+  const handleSelectSortOption = selectedOption => {
     setSortOption(selectedOption);
     setSortDropdownVisible(false);
   };
@@ -111,11 +117,8 @@ export default function BrowseBook(props) {
           <View style={styles.searchContainer}>
             <TouchableOpacity
               style={styles.dropdown}
-              onPress={() => setDropdownVisible(true)}
-            >
-              <Text style={styles.dropdownText}>
-                {genre || 'Select Genre'}
-              </Text>
+              onPress={() => setDropdownVisible(true)}>
+              <Text style={styles.dropdownText}>{genre || 'Select Genre'}</Text>
               <Icon name="arrow-drop-down" size={20} color="white" />
             </TouchableOpacity>
             <TextInput
@@ -137,11 +140,8 @@ export default function BrowseBook(props) {
             />
             <TouchableOpacity
               style={styles.dropdown}
-              onPress={() => setSortDropdownVisible(true)}
-            >
-              <Text style={styles.dropdownText}>
-                {sortOption || 'Sort By'}
-              </Text>
+              onPress={() => setSortDropdownVisible(true)}>
+              <Text style={styles.dropdownText}>{sortOption || 'Sort By'}</Text>
               <Icon name="arrow-drop-down" size={20} color="white" />
             </TouchableOpacity>
           </View>
@@ -153,26 +153,23 @@ export default function BrowseBook(props) {
             value={showAvailableOnly}
             onValueChange={setShowAvailableOnly}
             thumbColor={showAvailableOnly ? 'green' : 'grey'}
-            trackColor={{ false: 'grey', true: 'green' }}
+            trackColor={{false: 'grey', true: 'green'}}
           />
         </View>
 
         <Modal
           visible={dropdownVisible}
           transparent={true}
-          animationType="fade"
-        >
+          animationType="fade">
           <TouchableOpacity
             style={styles.modalOverlay}
-            onPress={() => setDropdownVisible(false)}
-          >
+            onPress={() => setDropdownVisible(false)}>
             <View style={styles.dropdownMenu}>
               {genres.map((item, index) => (
                 <TouchableOpacity
                   key={index}
                   style={styles.dropdownItem}
-                  onPress={() => handleSelectGenre(item)}
-                >
+                  onPress={() => handleSelectGenre(item)}>
                   <Text style={styles.dropdownItemText}>{item}</Text>
                 </TouchableOpacity>
               ))}
@@ -183,19 +180,16 @@ export default function BrowseBook(props) {
         <Modal
           visible={sortDropdownVisible}
           transparent={true}
-          animationType="fade"
-        >
+          animationType="fade">
           <TouchableOpacity
             style={styles.modalOverlay}
-            onPress={() => setSortDropdownVisible(false)}
-          >
+            onPress={() => setSortDropdownVisible(false)}>
             <View style={styles.dropdownMenu}>
               {sortOptions.map((item, index) => (
                 <TouchableOpacity
                   key={index}
                   style={styles.dropdownItem}
-                  onPress={() => handleSelectSortOption(item)}
-                >
+                  onPress={() => handleSelectSortOption(item)}>
                   <Text style={styles.dropdownItemText}>{item}</Text>
                 </TouchableOpacity>
               ))}
@@ -208,17 +202,15 @@ export default function BrowseBook(props) {
             key={index}
             style={[
               styles.bookContainer,
-              !book.canBeBorrowed && !showAvailableOnly && { opacity: 0.9 }, // Apply dimming only when showAvailableOnly is false
-            ]}
-          >
-            <Book book={book} />
+              !book.canBeBorrowed && !showAvailableOnly && {opacity: 0.9}, // Apply dimming only when showAvailableOnly is false
+            ]}>
+            <Book key={index} book={book} onBookBorrowed={handleBookBorrowed} />
           </View>
         ))}
-        
 
         {loading && (
           <ActivityIndicator
-            style={{ marginTop: 20 }}
+            style={{marginTop: 20}}
             size="large"
             color="white"
           />
