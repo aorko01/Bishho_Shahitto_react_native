@@ -11,6 +11,7 @@ import Catagory from './src/screen/Catagory';
 import BorrowedBooks from './src/screen/BorrowedBooks';
 import EditProfile from './src/screen/EditProfile';
 import Notifications from './src/screen/Notifications';
+import LoadingScreen from './src/screen/LoadingScreen';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { CommonActions } from '@react-navigation/native';
@@ -126,6 +127,7 @@ function App() {
   return (
     <NavigationContainer ref={navigationRef}>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="Loading" component={LoadingScreen} />
         <Stack.Screen name="Login" component={Login} />
         <Stack.Screen name="Register" component={Register} />
         <Stack.Screen name="Main" component={DrawerNavigator} />
