@@ -9,10 +9,11 @@ import DrawerNavigator from './src/navigation/DrawerNavigator';
 import IndividualBook from './src/screen/IndividualBook';
 import Catagory from './src/screen/Catagory';
 import BorrowedBooks from './src/screen/BorrowedBooks';
-import EditProfile from './src/screen/EditProffile';
+import EditProfile from './src/screen/EditProfile';
 import Notifications from './src/screen/Notifications';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { CommonActions } from '@react-navigation/native';
 
 const Stack = createNativeStackNavigator();
 
@@ -48,7 +49,65 @@ function App() {
       }
     };
 
+    const checkAccessToken = async () => {
+      try {
+        const accessToken = await AsyncStorage.getItem('accessToken');
+        const refreshToken = await AsyncStorage.getItem('refreshToken');
+
+        if (accessToken) {
+          // Verify accessToken with the backend
+          console.log('Checking access token:', accessToken);
+          const response = await axiosInstance.get('/users/is-user-verified');
+
+          if (response.status === 200) {
+            console.log('Access token is valid');
+            navigateToMainScreen();
+          } else {
+            throw new Error('Access token invalid');
+          }
+        } else if (refreshToken) {
+          // Refresh the accessToken using refreshToken
+          const refreshResponse = await axiosInstance.post('/users/refresh-accesstoken', { refreshToken: refreshToken });
+
+          if (refreshResponse.status === 200) {
+            const { newAccessToken } = refreshResponse.data;
+            await AsyncStorage.setItem('accessToken', newAccessToken);
+            console.log('Access token refreshed successfully');
+            navigateToMainScreen();
+          } else {
+            throw new Error('Unable to refresh access token');
+          }
+        } else {
+          navigateToLoginScreen();
+        }
+      } catch (error) {
+        console.error('Error checking tokens:', error);
+        navigateToLoginScreen();
+      }
+    };
+
+    const navigateToMainScreen = () => {
+      // Use navigationRef to navigate
+      navigationRef.current?.dispatch(
+        CommonActions.reset({
+          index: 0,
+          routes: [{ name: 'Main' }],
+        })
+      );
+    };
+
+    const navigateToLoginScreen = () => {
+      // Use navigationRef to navigate
+      navigationRef.current?.dispatch(
+        CommonActions.reset({
+          index: 0,
+          routes: [{ name: 'Login' }],
+        })
+      );
+    };
+
     requestFCMPermission();
+    checkAccessToken();
 
     // Listen to token refresh event
     const unsubscribe = messaging().onTokenRefresh(async (fcmToken) => {
@@ -65,7 +124,7 @@ function App() {
   }, []);
 
   return (
-    <NavigationContainer>
+    <NavigationContainer ref={navigationRef}>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Login" component={Login} />
         <Stack.Screen name="Register" component={Register} />
@@ -79,5 +138,8 @@ function App() {
     </NavigationContainer>
   );
 }
+
+// Create a navigation ref to be used in App component
+const navigationRef = React.createRef();
 
 export default App;

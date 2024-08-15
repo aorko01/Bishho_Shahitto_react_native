@@ -61,6 +61,8 @@ const Login = () => {
       await AsyncStorage.setItem('refreshToken', rememberMeToken);
     }
 
+    
+
     setRememberMeVisible(false);
     // Reset the navigation stack and navigate to 'Main'
     navigation.dispatch(
