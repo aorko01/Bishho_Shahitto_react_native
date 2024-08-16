@@ -309,9 +309,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   bookContainer: {
-    margin: 10,
-    backgroundColor: '#2a2b3d',
-    borderRadius: 10,
-    padding: 10,
+    // margin: 10,
+    // backgroundColor: '#2a2b3d',
+    // borderRadius: 10,
+    // padding: 10,
   },
 });
