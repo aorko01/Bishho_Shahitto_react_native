@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { Alert } from 'react-native';
 import messaging from '@react-native-firebase/messaging';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import axiosInstance from './src/utils/axiosInstance'; // Import the Axios instance
+import axiosInstance from './src/utils/axiosInstance';
 import Login from './src/screen/Login';
 import Register from './src/screen/Register';
 import DrawerNavigator from './src/navigation/DrawerNavigator';
@@ -40,10 +40,7 @@ function App() {
         const fcmToken = await messaging().getToken();
         console.log('FCM Token:', fcmToken);
 
-        // Store FCM token in AsyncStorage if needed
         await AsyncStorage.setItem('fcmToken', fcmToken);
-
-        // Send the token to the backend
         await axiosInstance.post('/users/update-fcm-token', { fcmToken });
       } catch (error) {
         console.error('Error fetching FCM token:', error);
@@ -56,25 +53,22 @@ function App() {
         const refreshToken = await AsyncStorage.getItem('refreshToken');
 
         if (accessToken) {
-          // Verify accessToken with the backend
-          console.log('Checking access token:', accessToken);
           const response = await axiosInstance.get('/users/is-user-verified');
 
           if (response.status === 200) {
             console.log('Access token is valid');
-            navigateToMainScreen();
+            navigateToHomeScreen();
           } else {
             throw new Error('Access token invalid');
           }
         } else if (refreshToken) {
-          // Refresh the accessToken using refreshToken
-          const refreshResponse = await axiosInstance.post('/users/refresh-accesstoken', { refreshToken: refreshToken });
+          const refreshResponse = await axiosInstance.post('/users/refresh-accesstoken', { refreshToken });
 
           if (refreshResponse.status === 200) {
             const { newAccessToken } = refreshResponse.data;
             await AsyncStorage.setItem('accessToken', newAccessToken);
             console.log('Access token refreshed successfully');
-            navigateToMainScreen();
+            navigateToHomeScreen();
           } else {
             throw new Error('Unable to refresh access token');
           }
@@ -87,8 +81,7 @@ function App() {
       }
     };
 
-    const navigateToMainScreen = () => {
-      // Use navigationRef to navigate
+    const navigateToHomeScreen = () => {
       navigationRef.current?.dispatch(
         CommonActions.reset({
           index: 0,
@@ -98,7 +91,6 @@ function App() {
     };
 
     const navigateToLoginScreen = () => {
-      // Use navigationRef to navigate
       navigationRef.current?.dispatch(
         CommonActions.reset({
           index: 0,
@@ -110,18 +102,13 @@ function App() {
     requestFCMPermission();
     checkAccessToken();
 
-    // Listen to token refresh event
     const unsubscribe = messaging().onTokenRefresh(async (fcmToken) => {
       console.log('FCM Token Refreshed:', fcmToken);
-
-      // Update the FCM token in AsyncStorage if needed
       await AsyncStorage.setItem('fcmToken', fcmToken);
-
-      // Send the refreshed token to the backend
       await axiosInstance.post('/users/update-fcm-token', { fcmToken });
     });
 
-    return unsubscribe; // Unsubscribe from the event on unmount
+    return unsubscribe;
   }, []);
 
   return (
@@ -141,7 +128,6 @@ function App() {
   );
 }
 
-// Create a navigation ref to be used in App component
 const navigationRef = React.createRef();
 
 export default App;

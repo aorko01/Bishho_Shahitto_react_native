@@ -1,8 +1,9 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { createDrawerNavigator, DrawerContentScrollView, DrawerItem } from '@react-navigation/drawer';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import BottomNavigation from './BottomNavigation';
 import SettignsScreen from '../screen/SettignsScreen';
+import Profile from '../screen/Profile';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import axiosInstance from '../utils/axiosInstance';
 import { useNavigation } from '@react-navigation/native';
@@ -16,25 +17,24 @@ function CustomDrawerContent(props) {
   const handleLogout = async () => {
     try {
       await axiosInstance.post('/users/logout');
-      await AsyncStorage.removeItem('accessToken');  // Remove access token from 
-      await AsyncStorage.removeItem('refreshToken'); // Remove refresh token
-      navigation.replace('Login');  // Navigate to the Login screen
+      await AsyncStorage.removeItem('accessToken');
+      await AsyncStorage.removeItem('refreshToken');
+      navigation.replace('Login');
     } catch (error) {
       console.error('Error during logout:', error);
     }
   };
-  
 
   return (
     <DrawerContentScrollView {...props} contentContainerStyle={styles.drawerContainer}>
       <View style={styles.drawerItems}>
         <DrawerItem
-          label="Home"
+          label="Profile"
           icon={({ color, size }) => (
-            <Icon name="home" color="#fff" size={size} />
+            <Icon name="person-outline" color="#fff" size={size} />
           )}
           labelStyle={styles.drawerLabel}
-          onPress={() => props.navigation.navigate('Home')}
+          onPress={() => props.navigation.navigate('Profile')}
         />
         <DrawerItem
           label="Settings"
@@ -57,20 +57,13 @@ function DrawerNavigator() {
   return (
     <Drawer.Navigator
       screenOptions={{
-        headerShown: false, // Set to true if you want to show headers for the screens in the drawer
+        headerShown: false,
       }}
       drawerContent={(props) => <CustomDrawerContent {...props} />}
     >
-      <Drawer.Screen 
-        name="Home" 
-        component={BottomNavigation} 
-        options={{ title: 'Home' }} 
-      />
-      <Drawer.Screen 
-        name="Settings" 
-        component={SettignsScreen} 
-        options={{ title: 'Settings' }} 
-      />
+      <Drawer.Screen name="Home" component={BottomNavigation} />
+      <Drawer.Screen name="Profile" component={Profile} />
+      <Drawer.Screen name="Settings" component={SettignsScreen} />
     </Drawer.Navigator>
   );
 }
@@ -79,14 +72,14 @@ const styles = StyleSheet.create({
   drawerContainer: {
     flex: 1,
     justifyContent: 'space-between',
-    backgroundColor: '#1a1b2b', // Keep the background color
+    backgroundColor: '#1a1b2b',
   },
   drawerItems: {
     paddingTop: 20,
   },
   drawerLabel: {
     fontSize: 16,
-    color: '#fff', // Keep the text color white
+    color: '#fff',
     marginLeft: -16,
   },
   logoutButton: {
@@ -99,7 +92,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   logoutText: {
-    color: '#fff', // Keep the text color white
+    color: '#fff',
     fontSize: 16,
     marginLeft: 10,
   },

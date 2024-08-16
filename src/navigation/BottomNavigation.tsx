@@ -3,6 +3,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { View, Text, StyleSheet } from 'react-native';
 import Home from '../screen/Home';
 import Profile from '../screen/Profile';
+import Requsted from '../screen/Requested';
 import BorrowRequest from '../screen/BorrowRequest';
 import Search from '../screen/Search';
 import BrowseBooks from '../screen/BrowseBook';
@@ -47,10 +48,10 @@ export default function BottomNavigation() {
               IconComponent = MaterialIcons;
               label = 'Borrowed';
               break;
-            case 'Profile':
+            case 'Requsted':
               iconName = 'person-outline';
               IconComponent = Ionicons;
-              label = 'Profile';
+              label = 'Requsted';
               break;
             default:
               iconName = 'ellipse-outline';
@@ -73,7 +74,7 @@ export default function BottomNavigation() {
       <Tab.Screen name="BrowseBooks" component={BrowseBooks} />
       <Tab.Screen name="Search" component={Search} />
       <Tab.Screen name="BorrowRequest" component={BorrowRequest} />
-      <Tab.Screen name="Profile" component={Profile} />
+      <Tab.Screen name="Requsted" component={Requsted} />
     </Tab.Navigator>
   );
 }

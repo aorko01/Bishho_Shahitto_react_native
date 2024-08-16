@@ -21,45 +21,57 @@ export default function Book({book, onBookBorrowed}) {
   
 
   const renderButtons = () => {
-    if (book.toReturn === undefined) {
-      if (book.canBeBorrowed) {
-        return (
-          <TouchableOpacity
-            style={[styles.borrowButton, styles.borrowButtonActive]}
-            onPress={() => setModalVisible(true)}>
-            <Text style={styles.buttonText}>Borrow</Text>
-          </TouchableOpacity>
-        );
-      } else {
-        return (
-          <View style={[styles.borrowButton, styles.borrowButtonInactive]}>
-            <Text style={styles.buttonText}>Borrow</Text>
-          </View>
-        );
-      }
-    } else if (book.toReturn === true) {
+  if (book.confirmBorrow === true) {
+    return (
+      <TouchableOpacity
+        style={[styles.borrowButton, styles.borrowButtonActive]}
+        onPress={() => setModalVisible(true)}>
+        <Text style={styles.buttonText}>Borrow</Text>
+      </TouchableOpacity>
+    );
+  }
+
+  if (book.toReturn === undefined) {
+    if (book.canBeBorrowed) {
       return (
-        <View style={styles.actionButtons}>
-          <TouchableOpacity
-            style={styles.returnButton}
-            onPress={() => setReturnModalVisible(true)}>
-            <Text style={styles.buttonText}>Return</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.extendButton}
-            onPress={() => setExtendModalVisible(true)}>
-            <Text style={styles.buttonText}>Extend</Text>
-          </TouchableOpacity>
-        </View>
+        <TouchableOpacity
+          style={[styles.borrowButton, styles.borrowButtonActive]}
+          onPress={() => setModalVisible(true)}>
+          <Text style={styles.buttonText}>Request</Text>
+        </TouchableOpacity>
       );
-    } else if (book.toReturn === false) {
+    } else {
       return (
-        <View style={styles.returnedLabel}>
-          <Text style={styles.labelText}>Returned</Text>
+        <View style={[styles.borrowButton, styles.borrowButtonInactive]}>
+          <Text style={styles.buttonText}>Request</Text>
         </View>
       );
     }
-  };
+  } else if (book.toReturn === true) {
+    return (
+      <View style={styles.actionButtons}>
+        <TouchableOpacity
+          style={styles.returnButton}
+          onPress={() => setReturnModalVisible(true)}>
+          <Text style={styles.buttonText}>Return</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.extendButton}
+          onPress={() => setExtendModalVisible(true)}>
+          <Text style={styles.buttonText}>Extend</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  } else if (book.toReturn === false) {
+    return (
+      <View style={styles.returnedLabel}>
+        <Text style={styles.labelText}>Returned</Text>
+      </View>
+    );
+  }
+};
+
+  
 
   const handleDaySelection = days => {
     if (days >= 1 && days <= 30) {
@@ -85,11 +97,11 @@ export default function Book({book, onBookBorrowed}) {
 
   const handleConfirmBorrow = async () => {
     try {
-      const response = await axiosInstance.post('/books/borrow-book', {
+      const response = await axiosInstance.post('/books/request-borrow', {
         bookId: book._id,
         daysToBorrow: selectedDays,
       });
-      console.log(`Book borrowed for ${selectedDays} days.`);
+      console.log(`borrow request for ${selectedDays} days.`);
       console.log(response.data); // Handle the response if needed
       setModalVisible(false);
       onBookBorrowed(); // Trigger re-fetch of books in Category component
@@ -385,5 +397,15 @@ const styles = StyleSheet.create({
     fontSize: 16,
     textAlign: 'center',
     marginVertical: 10,
+  },
+  requestButton: {
+    borderRadius: 5,
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  requestButtonActive: {
+    backgroundColor: '#4e4890', // Similar to the borrowButtonActive style
   },
 });
