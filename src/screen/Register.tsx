@@ -61,9 +61,6 @@ export default function Register({ navigation }) {
     setLoading(true); // Start loading
 
     try {
-      // Obtain FCM token
-      const fcmToken = await messaging().getToken();
-
       const formData = new FormData();
       formData.append('username', user.username);
       formData.append('email', user.email);
@@ -72,7 +69,6 @@ export default function Register({ navigation }) {
       formData.append('lastName', user.lastName);
       formData.append('password', user.password);
       formData.append('Region', user.region); // Add region to form data
-      formData.append('fcmToken', fcmToken); // Add FCM token to form data
 
       if (user.avatar) {
         formData.append('avatar', {

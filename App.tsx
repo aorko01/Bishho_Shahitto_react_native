@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Alert } from 'react-native';
 import messaging from '@react-native-firebase/messaging';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -19,6 +19,9 @@ import { CommonActions } from '@react-navigation/native';
 const Stack = createNativeStackNavigator();
 
 function App() {
+  const [isUserVerified, setIsUserVerified] = useState(false);
+  const navigationRef = useRef(null);
+
   useEffect(() => {
     const requestFCMPermission = async () => {
       const authStatus = await messaging().requestPermission();
@@ -28,7 +31,9 @@ function App() {
 
       if (enabled) {
         console.log('FCM permission granted');
-        getFCMToken();
+        if (isUserVerified) {
+          await getFCMToken();
+        }
       } else {
         console.log('FCM permission denied');
         Alert.alert('FCM Permission Denied', 'Please enable notifications.');
@@ -40,8 +45,9 @@ function App() {
         const fcmToken = await messaging().getToken();
         console.log('FCM Token:', fcmToken);
 
-        await AsyncStorage.setItem('fcmToken', fcmToken);
-        await axiosInstance.post('/users/update-fcm-token', { fcmToken });
+        if (isUserVerified) {
+          await axiosInstance.post('/users/update-fcm-token', { fcmToken });
+        }
       } catch (error) {
         console.error('Error fetching FCM token:', error);
       }
@@ -57,6 +63,7 @@ function App() {
 
           if (response.status === 200) {
             console.log('Access token is valid');
+            setIsUserVerified(true);
             navigateToHomeScreen();
           } else {
             throw new Error('Access token invalid');
@@ -68,6 +75,7 @@ function App() {
             const { newAccessToken } = refreshResponse.data;
             await AsyncStorage.setItem('accessToken', newAccessToken);
             console.log('Access token refreshed successfully');
+            setIsUserVerified(true);
             navigateToHomeScreen();
           } else {
             throw new Error('Unable to refresh access token');
@@ -104,12 +112,13 @@ function App() {
 
     const unsubscribe = messaging().onTokenRefresh(async (fcmToken) => {
       console.log('FCM Token Refreshed:', fcmToken);
-      await AsyncStorage.setItem('fcmToken', fcmToken);
-      await axiosInstance.post('/users/update-fcm-token', { fcmToken });
+      if (isUserVerified) {
+        await axiosInstance.post('/users/update-fcm-token', { fcmToken });
+      }
     });
 
     return unsubscribe;
-  }, []);
+  }, [isUserVerified]);
 
   return (
     <NavigationContainer ref={navigationRef}>
@@ -127,7 +136,5 @@ function App() {
     </NavigationContainer>
   );
 }
-
-const navigationRef = React.createRef();
 
 export default App;

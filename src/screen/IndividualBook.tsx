@@ -573,3 +573,28 @@ const styles = StyleSheet.create({
     marginLeft: 10,
   },
 });
+// {
+//   "_id": "66b4d45c0602c161a1d8d522",
+//   "title": "bitchi chulkai",
+//   "author": "aorko the boss",
+//   "genre": "Self-help",
+//   "description": "Not needed",
+//   "coverImage": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1654371463i/18144590.jpg",
+//   "borrowsCount": 9,
+//   "totalRating": 0,
+//   "totalRatingCount": 0,
+//   "createdAt": "2024-08-08T14:21:16.305Z",
+//   "updatedAt": "2024-08-15T11:43:34.480Z",
+//   "__v": 0,
+//   "toReturn": true,
+//   "bookID": "66b4d45c0602c161a1d8d522",
+//   "confirmBorrow": true,
+//   "canBeBorrowed": true,
+//   "daysToBorrow": 2
+// }
+// this is a sample book object
+// for now do few things if
+// toReturn is true it should be a gery button saying borrowed and no onpress should be there
+// else if confirmBorrow is true then render requested and color should be grey and no onpress event 
+// else if canBeBorrowed is ture then then render the borrow button with the styling as it is now and print borrow requested on console for debugging if the canBeBorroed is false and above two are also false then 
+// render a button named Remind with a proper button color and gradient styling

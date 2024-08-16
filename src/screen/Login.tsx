@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   SafeAreaView,
   ScrollView,
@@ -11,12 +11,12 @@ import {
   Modal,
   TouchableWithoutFeedback,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { CommonActions, useNavigation } from '@react-navigation/native';
 import { Formik } from 'formik';
 import * as Yup from 'yup';
-import axios from 'axios';
-import { CommonActions } from '@react-navigation/native';
+import axiosInstance from '../utils/axiosInstance';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import messaging from '@react-native-firebase/messaging'; // Import Firebase Messaging
 
 const API_URI = 'http://10.0.2.2:8000/api/v1';
 
@@ -32,9 +32,22 @@ const Login = () => {
   const [rememberMeVisible, setRememberMeVisible] = useState(false);
   const [rememberMeToken, setRememberMeToken] = useState(null);
 
+  useEffect(() => {
+    // Request permission to receive notifications
+    messaging().requestPermission();
+    
+    // Get FCM token
+    const fetchFcmToken = async () => {
+      const token = await messaging().getToken();
+      await AsyncStorage.setItem('fcmToken', token);
+    };
+    
+    fetchFcmToken();
+  }, []);
+
   const handleLogin = async values => {
     try {
-      const response = await axios.post(`${API_URI}/users/login`, {
+      const response = await axiosInstance.post(`${API_URI}/users/login`, {
         username: values.username,
         password: values.password,
       });
@@ -50,6 +63,17 @@ const Login = () => {
       // Show Remember Me modal and pass the refreshToken
       setRememberMeVisible(true);
       setRememberMeToken(refreshToken);
+
+      
+      
+      // Fetch the FCM token from AsyncStorage
+      const fcmToken = await AsyncStorage.getItem('fcmToken');
+      console.log('FCM Token:', fcmToken);
+      if (fcmToken) {
+        await axiosInstance.post('users/update-fcm-token', {
+          fcmToken,
+        });
+      }
     } catch (error) {
       console.error('Error logging in:', error);
       Alert.alert('Error', 'Failed to log in. Please try again.');
@@ -60,8 +84,6 @@ const Login = () => {
     if (remember && rememberMeToken) {
       await AsyncStorage.setItem('refreshToken', rememberMeToken);
     }
-
-    
 
     setRememberMeVisible(false);
     // Reset the navigation stack and navigate to 'Main'

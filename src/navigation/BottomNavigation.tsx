@@ -49,9 +49,9 @@ export default function BottomNavigation() {
               label = 'Borrowed';
               break;
             case 'Requsted':
-              iconName = 'person-outline';
+              iconName = 'notifications-outline'; // Updated icon for requested
               IconComponent = Ionicons;
-              label = 'Requsted';
+              label = 'Requested';
               break;
             default:
               iconName = 'ellipse-outline';
