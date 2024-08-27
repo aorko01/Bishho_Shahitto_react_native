@@ -17,6 +17,7 @@ import QRCode from 'react-native-qrcode-svg';
 export default function Book({book, onBookBorrowed}) {
   const navigation = useNavigation();
   const [modalVisible, setModalVisible] = useState(false);
+  const[remind, setRemind] = useState(book?.remind);
   const [selectedDays, setSelectedDays] = useState(7);
   const [returnModalVisible, setReturnModalVisible] = useState(false);
   const [extendModalVisible, setExtendModalVisible] = useState(false);
@@ -44,6 +45,21 @@ export default function Book({book, onBookBorrowed}) {
     getAccessToken();
   }, [selectedDays, book._id]);
 
+
+  const handleRemind = async () => {
+    try {
+      const response = await axiosInstance.post('/books/add-reminder', {
+        bookId: book._id,
+      });
+      console.log('Remind request sent successfully.');
+      console.log(response.data); // Handle the response if needed
+      setRemind(true);
+    } catch (error) {
+      console.error('Error sending remind request:', error);
+      // Optionally handle the error, e.g., show an alert
+    }
+  }
+
   const renderButtons = () => {
     if (book.canBeBorrowed !== undefined) {
         if (book.canBeBorrowed) {
@@ -55,7 +71,7 @@ export default function Book({book, onBookBorrowed}) {
                 </TouchableOpacity>
             );
         } else {
-            if (book.remind === true) {
+            if (remind === true) {
                 return (
                     <TouchableOpacity
                         style={[styles.borrowButton, styles.borrowButtonInactive, styles.remindButton]}
@@ -68,7 +84,7 @@ export default function Book({book, onBookBorrowed}) {
                 return (
                     <TouchableOpacity
                         style={[styles.borrowButton, styles.borrowButtonInactive]}
-                        onPress={() => {/* Handle remind functionality if needed */}}
+                        onPress={handleRemind}
                     >
                         <Text style={styles.buttonText}>Remind</Text>
                     </TouchableOpacity>

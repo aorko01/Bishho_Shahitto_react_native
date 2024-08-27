@@ -58,6 +58,7 @@ export default function IndividualBook() {
   const {book} = route.params;
   const[canBeBorrowed, setCanBeBorrowed] = useState(book?.canBeBorrowed);
   const[confirmBorrow, setConfirmBorrow] = useState(book?.confirmBorrow);
+  const[remind, setRemind] = useState(book?.remind);
 
   const [reviewText, setReviewText] = useState('');
   const [reviews, setReviews] = useState([]);
@@ -145,6 +146,18 @@ export default function IndividualBook() {
     }
   };
 
+  const handleAddReminder = async () => {
+    try {
+      const response = await axiosInstance.post('/books/add-reminder', {
+        bookId: book._id,
+      });
+      console.log('Reminder added successfully:', response.data);
+      setRemind(true);
+    } catch (error) {
+      console.error('Error adding reminder:', error);
+    }
+  }
+
   const handleBookmark = async () => {
     console.log(`Bookmarking book: ${book.title}`);
     try {
@@ -203,7 +216,7 @@ export default function IndividualBook() {
                 </TouchableOpacity>
             );
         } else {
-            if (book.remind === true) {
+            if (remind === true) {
                 return (
                     <TouchableOpacity
                         style={[styles.remindButton, styles.remindButtonStyle]}
@@ -222,7 +235,7 @@ export default function IndividualBook() {
             } else {
                 return (
                     <TouchableOpacity
-                        onPress={() => console.log('Remind')}
+                        onPress={handleAddReminder}
                         style={styles.remindButton}
                     >
                         <LinearGradient
