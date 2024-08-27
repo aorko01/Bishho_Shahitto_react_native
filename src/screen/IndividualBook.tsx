@@ -57,13 +57,28 @@ export default function IndividualBook() {
   const [reviews, setReviews] = useState([]);
   const [visibleReviews, setVisibleReviews] = useState(3);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isLiked, setIsLiked] = useState(false);
 
   const coverImage = book.coverImage; // Assuming coverImage is a field in your book object
   const bookId = book._id;
+  console.log('Book ID:', bookId);
 
   useEffect(() => {
     fetchUserReviews();
+    isthebookLiked();
   }, [bookId]);
+
+  const isthebookLiked = async () => {
+    try {
+      const response = await axiosInstance.post('/books/check-if-book-liked', {
+        bookId,
+      });
+      setIsLiked(response.data.isLiked);
+      console.log(response.data);
+    } catch (error) {
+      console.error('Error checking if book is liked:', error);
+    }
+  };
 
   const fetchUserReviews = async () => {
     try {
@@ -86,8 +101,23 @@ export default function IndividualBook() {
     console.log(`Borrowing book: ${book.title}`);
   };
 
-  const handleBookmark = () => {
+  const handleBookmark = async () => {
     console.log(`Bookmarking book: ${book.title}`);
+    try {
+      if (isLiked) {
+        console.log(bookId);
+        await axiosInstance.post('/books/remove-liked-book', {bookId});
+        
+      } else {
+        console.log(bookId);
+        await axiosInstance.post('/books/add-liked-book', {bookId});
+        console.log('Book liked');
+      }
+      setIsLiked(!isLiked);
+    } catch (error) {
+      console.error('Error toggling like:', error);
+      
+    }
   };
 
   const handleAddReview = async () => {
@@ -108,6 +138,75 @@ export default function IndividualBook() {
       console.error(
         'Error adding review:',
         error.response?.data || error.message,
+      );
+    }
+  };
+
+  const renderActionButton = () => {
+    if ('canBeBorrowed' in book) {
+      if (book.canBeBorrowed) {
+        return (
+          <TouchableOpacity onPress={handleBorrow} style={styles.borrowButton}>
+            <LinearGradient
+              colors={['#f7605e', '#e44243']}
+              start={{x: 0, y: 0}}
+              end={{x: 1, y: 0}}
+              style={styles.linearGradient}>
+              <Text style={styles.borrowText}>Borrow</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+        );
+      } else {
+        return (
+          <TouchableOpacity
+            onPress={() => console.log('Remind')}
+            style={styles.remindButton}>
+            <LinearGradient
+              colors={['#ffa726', '#fb8c00']}
+              start={{x: 0, y: 0}}
+              end={{x: 1, y: 0}}
+              style={styles.linearGradient}>
+              <Text style={styles.borrowText}>Remind</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+        );
+      }
+    } else if ('confirmBorrow' in book) {
+      return (
+        <TouchableOpacity
+          style={[styles.requestedButton, {backgroundColor: '#cccccc'}]}>
+          <LinearGradient
+            colors={['#bdbdbd', '#9e9e9e']}
+            start={{x: 0, y: 0}}
+            end={{x: 1, y: 0}}
+            style={styles.linearGradient}>
+            <Text style={styles.borrowText}>Requested</Text>
+          </LinearGradient>
+        </TouchableOpacity>
+      );
+    } else if ('toReturn' in book && book.toReturn) {
+      return (
+        <TouchableOpacity style={styles.borrowedButton}>
+          <LinearGradient
+            colors={['#bdbdbd', '#9e9e9e']}
+            start={{x: 0, y: 0}}
+            end={{x: 1, y: 0}}
+            style={styles.linearGradient}>
+            <Text style={styles.borrowText}>Extend</Text>
+          </LinearGradient>
+        </TouchableOpacity>
+      );
+    } else {
+      return (
+        <TouchableOpacity onPress={handleBorrow} style={styles.borrowButton}>
+          <LinearGradient
+            colors={['#f7605e', '#e44243']}
+            start={{x: 0, y: 0}}
+            end={{x: 1, y: 0}}
+            style={styles.linearGradient}>
+            <Text style={styles.borrowText}>Borrow</Text>
+          </LinearGradient>
+        </TouchableOpacity>
       );
     }
   };
@@ -150,23 +249,28 @@ export default function IndividualBook() {
   const likeReview = async (reviewId, isLiked) => {
     try {
       const endpoint = isLiked ? '/books/delete-likes' : '/books/add-likes';
-      const response = await axiosInstance.post(endpoint, { reviewId });
-  
-      console.log(`Review ${isLiked ? 'unliked' : 'liked'} successfully:`, response.data);
-  
+      const response = await axiosInstance.post(endpoint, {reviewId});
+
+      console.log(
+        `Review ${isLiked ? 'unliked' : 'liked'} successfully:`,
+        response.data,
+      );
+
       // Update the reviews state to reflect the changed like status
       setReviews(prevReviews =>
         prevReviews.map(review =>
           review._id === reviewId
-            ? { ...review, isLiked: !review.isLiked }
-            : review
-        )
+            ? {...review, isLiked: !review.isLiked}
+            : review,
+        ),
       );
     } catch (error) {
-      console.error(`Error ${isLiked ? 'unliking' : 'liking'} review:`, error.response?.data || error.message);
+      console.error(
+        `Error ${isLiked ? 'unliking' : 'liking'} review:`,
+        error.response?.data || error.message,
+      );
     }
   };
-  
 
   const renderUserReviews = () => {
     // Determine the reviews to show based on whether it's expanded or not
@@ -192,7 +296,7 @@ export default function IndividualBook() {
             />
             <View style={styles.reviewInfo}>
               <Text style={styles.reviewName}>
-                {review.userDetails.fullName.lastName || 'Anonymous'}
+                {review.userDetails.username || 'Anonymous'}
               </Text>
               <Text style={styles.reviewText}>{review.review}</Text>
             </View>
@@ -268,21 +372,15 @@ export default function IndividualBook() {
             <Text style={styles.author}>By {book.author}</Text>
             <Text style={styles.author}>Rating: {book.totalRating}</Text>
             <View style={styles.buttonsContainer}>
-              <TouchableOpacity
-                onPress={handleBorrow}
-                style={styles.borrowButton}>
-                <LinearGradient
-                  colors={['#f7605e', '#e44243']}
-                  start={{x: 0, y: 0}}
-                  end={{x: 1, y: 0}}
-                  style={styles.linearGradient}>
-                  <Text style={styles.borrowText}>Borrow</Text>
-                </LinearGradient>
-              </TouchableOpacity>
+              {renderActionButton()}
               <TouchableOpacity
                 onPress={handleBookmark}
                 style={styles.bookmarkButton}>
-                <Icon name="bookmark" size={30} color="white" />
+                <Icon
+                  name="bookmark"
+                  size={30}
+                  color={isLiked ? '#3a3c51' : '#EBEBEE'} // Bright yellow for liked, white for not liked
+                />
               </TouchableOpacity>
             </View>
           </View>
@@ -572,29 +670,24 @@ const styles = StyleSheet.create({
     color: '#000',
     marginLeft: 10,
   },
+  remindButton: {
+    flex: 1,
+    marginRight: 10,
+    marginBottom: 10,
+  },
+  requestedButton: {
+    flex: 1,
+    marginRight: 10,
+    marginBottom: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 20,
+    padding: 12,
+  },
+  borrowedButton: {
+    flex: 1,
+    marginRight: 10,
+    marginBottom: 10,
+  },
 });
-// {
-//   "_id": "66b4d45c0602c161a1d8d522",
-//   "title": "bitchi chulkai",
-//   "author": "aorko the boss",
-//   "genre": "Self-help",
-//   "description": "Not needed",
-//   "coverImage": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1654371463i/18144590.jpg",
-//   "borrowsCount": 9,
-//   "totalRating": 0,
-//   "totalRatingCount": 0,
-//   "createdAt": "2024-08-08T14:21:16.305Z",
-//   "updatedAt": "2024-08-15T11:43:34.480Z",
-//   "__v": 0,
-//   "toReturn": true,
-//   "bookID": "66b4d45c0602c161a1d8d522",
-//   "confirmBorrow": true,
-//   "canBeBorrowed": true,
-//   "daysToBorrow": 2
-// }
-// this is a sample book object
-// for now do few things if
-// toReturn is true it should be a gery button saying borrowed and no onpress should be there
-// else if confirmBorrow is true then render requested and color should be grey and no onpress event 
-// else if canBeBorrowed is ture then then render the borrow button with the styling as it is now and print borrow requested on console for debugging if the canBeBorroed is false and above two are also false then 
-// render a button named Remind with a proper button color and gradient styling
+

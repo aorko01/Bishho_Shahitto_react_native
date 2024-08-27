@@ -18,7 +18,7 @@ import axiosInstance from '../utils/axiosInstance';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import messaging from '@react-native-firebase/messaging'; // Import Firebase Messaging
 
-const API_URI = 'http://10.0.2.2:8000/api/v1';
+const API_URI = 'https://aorko.me/api/v1';
 
 const userSchema = Yup.object().shape({
   username: Yup.string().required().label('Username'),

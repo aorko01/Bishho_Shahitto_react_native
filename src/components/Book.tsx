@@ -45,17 +45,7 @@ export default function Book({book, onBookBorrowed}) {
   }, [selectedDays, book._id]);
 
   const renderButtons = () => {
-    if (book.confirmBorrow === true) {
-      return (
-        <TouchableOpacity
-          style={[styles.borrowButton, styles.borrowButtonActive]}
-          onPress={() => setQrModalVisible(true)}>
-          <Text style={styles.buttonText}>Borrow</Text>
-        </TouchableOpacity>
-      );
-    }
-
-    if (book.toReturn === undefined) {
+    if (book.canBeBorrowed !== undefined) {
       if (book.canBeBorrowed) {
         return (
           <TouchableOpacity
@@ -66,11 +56,20 @@ export default function Book({book, onBookBorrowed}) {
         );
       } else {
         return (
-          <View style={[styles.borrowButton, styles.borrowButtonInactive]}>
-            <Text style={styles.buttonText}>Request</Text>
-          </View>
+          <TouchableOpacity
+            style={[styles.borrowButton, styles.borrowButtonInactive]}>
+            <Text style={styles.buttonText}>Remind</Text>
+          </TouchableOpacity>
         );
       }
+    } else if (book.confirmBorrow === true) {
+      return (
+        <TouchableOpacity
+          style={[styles.borrowButton, styles.borrowButtonActive]}
+          onPress={() => setQrModalVisible(true)}>
+          <Text style={styles.buttonText}>Borrow</Text>
+        </TouchableOpacity>
+      );
     } else if (book.toReturn === true) {
       return (
         <View style={styles.actionButtons}>
@@ -86,14 +85,9 @@ export default function Book({book, onBookBorrowed}) {
           </TouchableOpacity>
         </View>
       );
-    } else if (book.toReturn === false) {
-      return (
-        <View style={styles.returnedLabel}>
-          <Text style={styles.labelText}>Returned</Text>
-        </View>
-      );
     }
   };
+  
 
   const handleDaySelection = days => {
     if (days >= 1 && days <= 30) {

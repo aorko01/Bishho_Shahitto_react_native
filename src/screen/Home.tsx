@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, {useEffect, useState, useCallback} from 'react';
 import {
   Image,
   SafeAreaView,
@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import NotificationIcon from '../components/NotificationIcon.tsx';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import {useNavigation, useFocusEffect} from '@react-navigation/native';
 import axiosInstance from '../utils/axiosInstance.js';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -60,7 +60,7 @@ export default function Home() {
       fetchTopPicks();
       fetchPreviousBorrows();
       loadUserData(); // Load user data when the screen is focused
-    }, [])
+    }, []),
   );
 
   const coverImages = [
@@ -74,17 +74,18 @@ export default function Home() {
     <SafeAreaView style={styles.container}>
       <ScrollView>
         <NotificationIcon />
-        <TouchableOpacity onPress={() => navigation.openDrawer()}>
-          <Image
-            source={{
-              uri: user?.avatar || 'https://encrypted-tbn2.gstatic.com/images?q=tbn:ANd9GcTP9hneBUzKcWY0lZAnnIP9-rPOWqP9lsVIO5iihMwrKsTcevg2OehToQ3wb-1z3FNIWJ4nWEqdd5AunJjSCdwTFbWgAW5mFSxlRp56Og',
-            }}
-            style={styles.avatar}
-          />
-        </TouchableOpacity>
-        <Text style={styles.Hello}>
-          Hello {user?.lastName || 'Ali'}!
-        </Text>
+
+        <Image
+          source={{
+            uri:
+              user?.avatar ||
+              'https://encrypted-tbn2.gstatic.com/images?q=tbn:ANd9GcTP9hneBUzKcWY0lZAnnIP9-rPOWqP9lsVIO5iihMwrKsTcevg2OehToQ3wb-1z3FNIWJ4nWEqdd5AunJjSCdwTFbWgAW5mFSxlRp56Og',
+            cache: 'force-cache',
+          }}
+          style={styles.avatar}
+        />
+
+        <Text style={styles.Hello}>Hello {user?.lastName || 'Ali'}!</Text>
         <TouchableOpacity
           style={styles.searchTouchable}
           onPress={() => navigation.navigate('Search')}>
@@ -98,7 +99,7 @@ export default function Home() {
             <Text style={styles.Heading}>Top Picks for you</Text>
             <TouchableOpacity
               onPress={() =>
-                navigation.push('Catagory', { category: 'Top picks' })
+                navigation.push('Catagory', {category: 'Top picks'})
               }>
               <Text style={styles.all}>See all</Text>
             </TouchableOpacity>
@@ -106,23 +107,25 @@ export default function Home() {
           <ScrollView horizontal={true} style={styles.horizontalScroll}>
             {loading ? (
               <ActivityIndicator size="large" color="#fff" />
+            ) : topPicks.length > 0 ? (
+              topPicks.map((book, idx) => (
+                <TouchableOpacity
+                  key={idx}
+                  onPress={() => navigation.push('IndividualBook', {book})}>
+                  <Image
+                    source={{uri: book.coverImage}}
+                    style={styles.bookCoverTrending}
+                  />
+                </TouchableOpacity>
+              ))
             ) : (
-              topPicks.length > 0 ? (
-                topPicks.map((book, idx) => (
-                  <TouchableOpacity
-                    key={idx}
-                    onPress={() => navigation.push('IndividualBook', { book })}>
-                    <Image
-                      source={{ uri: book.coverImage }}
-                      style={styles.bookCoverTrending}
-                    />
-                  </TouchableOpacity>
-                ))
-              ) : (
-                coverImages.map((image, idx) => (
-                  <Image key={idx} source={{ uri: image }} style={styles.bookCoverTrending} />
-                ))
-              )
+              coverImages.map((image, idx) => (
+                <Image
+                  key={idx}
+                  source={{uri: image}}
+                  style={styles.bookCoverTrending}
+                />
+              ))
             )}
           </ScrollView>
         </View>
@@ -133,14 +136,14 @@ export default function Home() {
             <Text style={styles.Heading}>Trending</Text>
             <TouchableOpacity
               onPress={() =>
-                navigation.push('Catagory', { category: 'Top picks' })
+                navigation.push('Catagory', {category: 'Top picks'})
               }>
               <Text style={styles.all}>See all</Text>
             </TouchableOpacity>
           </View>
           <ScrollView horizontal={true} style={styles.horizontalScroll}>
             {coverImages.map((image, idx) => (
-              <Image key={idx} source={{ uri: image }} style={styles.bookCover} />
+              <Image key={idx} source={{uri: image}} style={styles.bookCover} />
             ))}
           </ScrollView>
         </View>
@@ -155,7 +158,7 @@ export default function Home() {
           </View>
           <ScrollView horizontal={true} style={styles.horizontalScroll}>
             {coverImages.map((image, idx) => (
-              <Image key={idx} source={{ uri: image }} style={styles.bookCover} />
+              <Image key={idx} source={{uri: image}} style={styles.bookCover} />
             ))}
           </ScrollView>
         </View>
@@ -164,34 +167,35 @@ export default function Home() {
         <View style={styles.sectionContainer4}>
           <View style={styles.TrendingContainer}>
             <Text style={styles.Heading}>Your recent Borrows</Text>
-            <TouchableOpacity
-              onPress={() => navigation.push('BorrowedBooks')}>
+            <TouchableOpacity onPress={() => navigation.push('BorrowedBooks')}>
               <Text style={styles.all}>See all</Text>
             </TouchableOpacity>
           </View>
           <ScrollView horizontal={true} style={styles.horizontalScroll}>
             {loading ? (
               <ActivityIndicator size="large" color="#fff" />
+            ) : books.length > 0 ? (
+              books.map((book, idx) => (
+                <TouchableOpacity
+                  key={idx}
+                  onPress={() => navigation.push('IndividualBook', {book})}>
+                  <Image
+                    source={{uri: book.coverImage}}
+                    style={[
+                      styles.bookCover,
+                      book.toReturn === false && styles.dimmedBookCover,
+                    ]}
+                  />
+                </TouchableOpacity>
+              ))
             ) : (
-              books.length > 0 ? (
-                books.map((book, idx) => (
-                  <TouchableOpacity
-                    key={idx}
-                    onPress={() => navigation.push('IndividualBook', { book })}>
-                    <Image
-                      source={{ uri: book.coverImage }}
-                      style={[
-                        styles.bookCover,
-                        book.toReturn === false && styles.dimmedBookCover,
-                      ]}
-                    />
-                  </TouchableOpacity>
-                ))
-              ) : (
-                coverImages.map((image, idx) => (
-                  <Image key={idx} source={{ uri: image }} style={styles.bookCover} />
-                ))
-              )
+              coverImages.map((image, idx) => (
+                <Image
+                  key={idx}
+                  source={{uri: image}}
+                  style={styles.bookCover}
+                />
+              ))
             )}
           </ScrollView>
         </View>
@@ -199,7 +203,6 @@ export default function Home() {
     </SafeAreaView>
   );
 }
-
 
 const styles = StyleSheet.create({
   container: {

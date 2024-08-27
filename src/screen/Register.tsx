@@ -15,7 +15,7 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import { launchImageLibrary } from 'react-native-image-picker';
 import axios from 'axios'; // Import axios
 
-const API_URI = 'http://10.0.2.2:8000/api/v1';
+const API_URI = 'https://aorko.me/api/v1';
 
 export default function Register({ navigation }) {
   const [user, setUser] = useState({

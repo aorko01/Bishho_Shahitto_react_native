@@ -58,10 +58,11 @@ function DrawerNavigator() {
     <Drawer.Navigator
       screenOptions={{
         headerShown: false,
+        gestureEnabled: true,
       }}
       drawerContent={(props) => <CustomDrawerContent {...props} />}
     >
-      <Drawer.Screen name="Home" component={BottomNavigation} />
+      <Drawer.Screen name="Bottom_nativationrr" component={BottomNavigation} />
       <Drawer.Screen name="Profile" component={Profile} />
       <Drawer.Screen name="Settings" component={SettignsScreen} />
     </Drawer.Navigator>
