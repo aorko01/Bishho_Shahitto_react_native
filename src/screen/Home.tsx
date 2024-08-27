@@ -21,6 +21,67 @@ export default function Home() {
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
+  const [genres, setGenres] = useState([]);
+  const [requestedBooks, setRequestedBooks] = useState([]);
+
+  const GenreIcons = {
+    Fiction: 'book',
+    NonFiction: 'library-books',
+    Mystery: 'search',
+    Romance: 'favorite',
+    Science: 'science',
+    Fantasy: 'castle',
+    History: 'history',
+    Biography: 'person',
+    Thriller: 'flash-on',
+    Horror: 'visibility-off',
+    Adventure: 'explore',
+    Poetry: 'short-text',
+    Drama: 'theaters',
+    Self_Help: 'self-improvement', // Updated to use underscore
+    Health: 'fitness-center',
+    Cooking: 'restaurant-menu',
+    Travel: 'flight',
+    Philosophy: 'school',
+    Art: 'palette',
+    Music: 'music-note',
+    Technology: 'computer',
+    Business: 'work',
+    Comics: 'insert-emoticon',
+    Religion: 'place',
+    ScienceFiction: 'rocket',
+    Sports: 'sports-soccer',
+    Politics: 'gavel',
+    Education: 'school',
+    Memoir: 'auto-stories',
+    Spirituality: 'spa',
+    Economics: 'account-balance',
+    Crime: 'security',
+    Parenting: 'child-care',
+    Novel: 'book',
+  };
+
+  const defaultIcon = 'help'; // Default icon for unknown genres
+
+  const fetchGenres = async () => {
+    try {
+      const response = await axiosInstance.get('/books/get-all-genres'); // Adjust endpoint as needed
+      setGenres(response.data.data);
+    } catch (error) {
+      console.error('Error fetching genres:', error);
+    }
+  };
+
+  const fetchRequestedBooks = async () => {
+    try {
+      const response = await axiosInstance.get('/books/get-to-borrows'); // Adjust endpoint as per your backend route
+      setRequestedBooks(response.data.data);
+      setLoading(false);
+    } catch (error) {
+      console.error('Error fetching requested books:', error);
+      setLoading(false);
+    }
+  };
 
   const fetchTopPicks = async () => {
     try {
@@ -59,7 +120,9 @@ export default function Home() {
     useCallback(() => {
       fetchTopPicks();
       fetchPreviousBorrows();
-      loadUserData(); // Load user data when the screen is focused
+      loadUserData();
+      fetchGenres();
+      fetchRequestedBooks();
     }, []),
   );
 
@@ -130,10 +193,29 @@ export default function Home() {
           </ScrollView>
         </View>
 
-        {/* Section 2: Trending */}
+        {/* Section 3: Pick from Popular Genre */}
+        <View style={styles.sectionContainer3}>
+          <View style={styles.TrendingContainer}>
+            <Text style={styles.Heading}>Pick from Popular Genre</Text>
+          </View>
+          <ScrollView horizontal={true} style={styles.horizontalScroll}>
+            {genres.map((genre, idx) => (
+              <View key={idx} style={styles.iconContainer}>
+                <Icon
+                  name={GenreIcons[genre] || defaultIcon}
+                  size={120}
+                  color="white"
+                />
+                <Text style={styles.genreText}>{genre}</Text>
+              </View>
+            ))}
+          </ScrollView>
+        </View>
+
+        {/* Section 2: Requested */}
         <View style={styles.sectionContainer2}>
           <View style={styles.TrendingContainer}>
-            <Text style={styles.Heading}>Trending</Text>
+            <Text style={styles.Heading}>Requested Books</Text>
             <TouchableOpacity
               onPress={() =>
                 navigation.push('Catagory', {category: 'Top picks'})
@@ -142,24 +224,19 @@ export default function Home() {
             </TouchableOpacity>
           </View>
           <ScrollView horizontal={true} style={styles.horizontalScroll}>
-            {coverImages.map((image, idx) => (
-              <Image key={idx} source={{uri: image}} style={styles.bookCover} />
-            ))}
-          </ScrollView>
-        </View>
-
-        {/* Section 3: Pick from Popular Genre */}
-        <View style={styles.sectionContainer3}>
-          <View style={styles.TrendingContainer}>
-            <Text style={styles.Heading}>Pick from Popular Genre</Text>
-            <TouchableOpacity>
-              <Text style={styles.all}>See all</Text>
-            </TouchableOpacity>
-          </View>
-          <ScrollView horizontal={true} style={styles.horizontalScroll}>
-            {coverImages.map((image, idx) => (
-              <Image key={idx} source={{uri: image}} style={styles.bookCover} />
-            ))}
+            {loading ? ( // Optional: Check if you're fetching the data
+              <ActivityIndicator size="large" color="#fff" />
+            ) : requestedBooks.length > 0 ? (
+              requestedBooks.map((book, idx) => (
+                <Image
+                  key={idx}
+                  source={{uri: book.coverImage}} // Assuming 'coverImage' is the property holding the image URL
+                  style={styles.bookCover}
+                />
+              ))
+            ) : (
+              <Text style={styles.noBooksText}>No books requested</Text> // Fallback if no books are available
+            )}
           </ScrollView>
         </View>
 
@@ -302,5 +379,15 @@ const styles = StyleSheet.create({
   },
   dimmedBookCover: {
     opacity: 0.5,
+  },
+  iconContainer: {
+    alignItems: 'center',
+    marginRight: 10, // Match the book cover margin
+    width: 120, // Adjust width to match book cover width
+  },
+  genreText: {
+    marginTop: 5, // Adjust if needed to align with book title text
+    fontSize: 14, // Adjust font size to match book titles
+    color: 'white',
   },
 });

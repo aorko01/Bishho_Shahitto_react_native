@@ -186,75 +186,107 @@ export default function IndividualBook() {
 
   const renderActionButton = () => {
     if (canBeBorrowed !== undefined) {
-      if (canBeBorrowed) {
+        if (canBeBorrowed) {
+            return (
+                <TouchableOpacity 
+                    style={styles.borrowButton}
+                    onPress={() => setModalVisible(true)}
+                >
+                    <LinearGradient
+                        colors={['#4e4890', '#8a4ea3']} // Gradient colors for active state
+                        start={{x: 0, y: 0}}
+                        end={{x: 1, y: 0}}
+                        style={styles.linearGradient}
+                    >
+                        <Text style={styles.borrowText}>Request</Text>
+                    </LinearGradient>
+                </TouchableOpacity>
+            );
+        } else {
+            if (book.remind === true) {
+                return (
+                    <TouchableOpacity
+                        style={[styles.remindButton, styles.remindButtonStyle]}
+                        disabled={true} // Make the button non-clickable
+                    >
+                        <LinearGradient
+                            colors={['#c0c0c0', '#a9a9a9']} // Ash color gradient
+                            start={{x: 0, y: 0}}
+                            end={{x: 1, y: 0}}
+                            style={styles.linearGradient}
+                        >
+                            <Text style={styles.borrowText}>Remind</Text>
+                        </LinearGradient>
+                    </TouchableOpacity>
+                );
+            } else {
+                return (
+                    <TouchableOpacity
+                        onPress={() => console.log('Remind')}
+                        style={styles.remindButton}
+                    >
+                        <LinearGradient
+                            colors={['#ffa726', '#fb8c00']} // Gradient colors for remind state
+                            start={{x: 0, y: 0}}
+                            end={{x: 1, y: 0}}
+                            style={styles.linearGradient}
+                        >
+                            <Text style={styles.borrowText}>Remind</Text>
+                        </LinearGradient>
+                    </TouchableOpacity>
+                );
+            }
+        }
+    } else if (confirmBorrow !== undefined && confirmBorrow) {
         return (
-          <TouchableOpacity style={styles.borrowButton}
-          onPress={() => setModalVisible(true)}
-          >
-            <LinearGradient
-              colors={['#4e4890', '#8a4ea3']} // Updated colors array
-              start={{x: 0, y: 0}}
-              end={{x: 1, y: 0}}
-              style={styles.linearGradient}>
-              <Text style={styles.borrowText}>Request</Text>
-            </LinearGradient>
-          </TouchableOpacity>
+            <TouchableOpacity
+                style={styles.requestedButton}
+                onPress={handleBorrow}
+            >
+                <LinearGradient
+                    colors={['#f7605e', '#e44243']} // Gradient colors for borrowed state
+                    start={{x: 0, y: 0}}
+                    end={{x: 1, y: 0}}
+                    style={styles.linearGradient}
+                >
+                    <Text style={styles.borrowText}>Borrow</Text>
+                </LinearGradient>
+            </TouchableOpacity>
         );
-      } else {
-        return (
-          <TouchableOpacity
-            onPress={() => console.log('Remind')}
-            style={styles.remindButton}>
-            <LinearGradient
-              colors={['#ffa726', '#fb8c00']}
-              start={{x: 0, y: 0}}
-              end={{x: 1, y: 0}}
-              style={styles.linearGradient}>
-              <Text style={styles.borrowText}>Remind</Text>
-            </LinearGradient>
-          </TouchableOpacity>
-        );
-      }
-    } else if (confirmBorrow!==undefined && confirmBorrow) {
-      return (
-        <TouchableOpacity
-          style={[styles.requestedButton]}
-          onPress={handleBorrow}>
-          <LinearGradient
-            colors={['#f7605e', '#e44243']}
-            start={{x: 0, y: 0}}
-            end={{x: 1, y: 0}}
-            style={styles.linearGradient}>
-            <Text style={styles.borrowText}>Borrow</Text>
-          </LinearGradient>
-        </TouchableOpacity>
-      );
     } else if ('toReturn' in book && book.toReturn) {
-      return (
-        <TouchableOpacity style={styles.borrowedButton}>
-          <LinearGradient
-            colors={['#bdbdbd', '#9e9e9e']}
-            start={{x: 0, y: 0}}
-            end={{x: 1, y: 0}}
-            style={styles.linearGradient}>
-            <Text style={styles.borrowText}>Extend</Text>
-          </LinearGradient>
-        </TouchableOpacity>
-      );
+        return (
+            <TouchableOpacity 
+                style={styles.borrowedButton}
+            >
+                <LinearGradient
+                    colors={['#bdbdbd', '#9e9e9e']} // Gradient colors for borrowed state
+                    start={{x: 0, y: 0}}
+                    end={{x: 1, y: 0}}
+                    style={styles.linearGradient}
+                >
+                    <Text style={styles.borrowText}>Borrowed</Text>
+                </LinearGradient>
+            </TouchableOpacity>
+        );
     } else {
-      return (
-        <TouchableOpacity onPress={handleBorrow} style={styles.borrowButton}>
-          <LinearGradient
-            colors={['#f7605e', '#e44243']}
-            start={{x: 0, y: 0}}
-            end={{x: 1, y: 0}}
-            style={styles.linearGradient}>
-            <Text style={styles.borrowText}>Borrow</Text>
-          </LinearGradient>
-        </TouchableOpacity>
-      );
+        return (
+            <TouchableOpacity 
+                onPress={handleBorrow} 
+                style={styles.borrowButton}
+            >
+                <LinearGradient
+                    colors={['#f7605e', '#e44243']} // Gradient colors for default state
+                    start={{x: 0, y: 0}}
+                    end={{x: 1, y: 0}}
+                    style={styles.linearGradient}
+                >
+                    <Text style={styles.borrowText}>Borrow</Text>
+                </LinearGradient>
+            </TouchableOpacity>
+        );
     }
-  };
+};
+
 
   const renderRatingStars = () => {
     return (

@@ -46,47 +46,60 @@ export default function Book({book, onBookBorrowed}) {
 
   const renderButtons = () => {
     if (book.canBeBorrowed !== undefined) {
-      if (book.canBeBorrowed) {
-        return (
-          <TouchableOpacity
-            style={[styles.borrowButton, styles.borrowButtonActive]}
-            onPress={() => setModalVisible(true)}>
-            <Text style={styles.buttonText}>Request</Text>
-          </TouchableOpacity>
-        );
-      } else {
-        return (
-          <TouchableOpacity
-            style={[styles.borrowButton, styles.borrowButtonInactive]}>
-            <Text style={styles.buttonText}>Remind</Text>
-          </TouchableOpacity>
-        );
-      }
+        if (book.canBeBorrowed) {
+            return (
+                <TouchableOpacity
+                    style={[styles.borrowButton, styles.borrowButtonActive]}
+                    onPress={() => setModalVisible(true)}>
+                    <Text style={styles.buttonText}>Request</Text>
+                </TouchableOpacity>
+            );
+        } else {
+            if (book.remind === true) {
+                return (
+                    <TouchableOpacity
+                        style={[styles.borrowButton, styles.borrowButtonInactive, styles.remindButton]}
+                        disabled={true} // Make the button non-clickable
+                    >
+                        <Text style={styles.buttonText}>Remind</Text>
+                    </TouchableOpacity>
+                );
+            } else {
+                return (
+                    <TouchableOpacity
+                        style={[styles.borrowButton, styles.borrowButtonInactive]}
+                        onPress={() => {/* Handle remind functionality if needed */}}
+                    >
+                        <Text style={styles.buttonText}>Remind</Text>
+                    </TouchableOpacity>
+                );
+            }
+        }
     } else if (book.confirmBorrow === true) {
-      return (
-        <TouchableOpacity
-          style={[styles.borrowButton]}
-          onPress={() => setQrModalVisible(true)}>
-          <Text style={styles.buttonText}>Borrow</Text>
-        </TouchableOpacity>
-      );
+        return (
+            <TouchableOpacity
+                style={[styles.borrowButton]}
+                onPress={() => setQrModalVisible(true)}>
+                <Text style={styles.buttonText}>Borrow</Text>
+            </TouchableOpacity>
+        );
     } else if (book.toReturn === true) {
-      return (
-        <View style={styles.actionButtons}>
-          <TouchableOpacity
-            style={styles.returnButton}
-            onPress={() => setReturnModalVisible(true)}>
-            <Text style={styles.buttonText}>Return</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.extendButton}
-            onPress={() => setExtendModalVisible(true)}>
-            <Text style={styles.buttonText}>Extend</Text>
-          </TouchableOpacity>
-        </View>
-      );
+        return (
+            <View style={styles.actionButtons}>
+                <TouchableOpacity
+                    style={styles.returnButton}
+                    onPress={() => setReturnModalVisible(true)}>
+                    <Text style={styles.buttonText}>Return</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                    style={styles.extendButton}
+                    onPress={() => setExtendModalVisible(true)}>
+                    <Text style={styles.buttonText}>Extend</Text>
+                </TouchableOpacity>
+            </View>
+        );
     }
-  };
+};
 
   const handleDaySelection = days => {
     if (days >= 1 && days <= 30) {
@@ -369,6 +382,10 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     width: '100%', // Make the button full width
   },
+  remindButton: {
+    backgroundColor: '#c0c0c0', // Ash color
+    opacity: 0.6, // To show the button is non-clickable
+},
   returnedLabel: {
     backgroundColor: '#757575',
     paddingVertical: 10,
