@@ -232,11 +232,14 @@ export default function Home() {
               <ActivityIndicator size="large" color="#fff" />
             ) : requestedBooks.length > 0 ? (
               requestedBooks.map((book, idx) => (
-                <Image
+                <TouchableOpacity
                   key={idx}
-                  source={{uri: book.coverImage}} // Assuming 'coverImage' is the property holding the image URL
-                  style={styles.bookCover}
-                />
+                  onPress={() => navigation.push('IndividualBook', {book})}>
+                  <Image
+                    source={{uri: book.coverImage}} // Assuming 'coverImage' is the property holding the image URL
+                    style={styles.bookCover}
+                  />
+                </TouchableOpacity>
               ))
             ) : (
               <Text style={styles.noBooksText}>No books requested</Text> // Fallback if no books are available

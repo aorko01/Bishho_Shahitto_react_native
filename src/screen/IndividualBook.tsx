@@ -158,6 +158,12 @@ export default function IndividualBook() {
     }
   }
 
+  const handleDaySelection = days => {
+    if (days >= 1 && days <= 30) {
+      setSelectedDays(days);
+    }
+  };
+
   const handleBookmark = async () => {
     console.log(`Bookmarking book: ${book.title}`);
     try {
@@ -483,7 +489,7 @@ export default function IndividualBook() {
 
         <View style={styles.sectionContainer2}>
           <View style={styles.TrendingContainer}>
-            <Text style={styles.Heading}>Trending</Text>
+            <Text style={styles.Heading}>Similar </Text>
             <TouchableOpacity>
               <Text style={styles.all}>See all</Text>
             </TouchableOpacity>
