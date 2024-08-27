@@ -107,7 +107,6 @@ export default function IndividualBook() {
       if (isLiked) {
         console.log(bookId);
         await axiosInstance.post('/books/remove-liked-book', {bookId});
-        
       } else {
         console.log(bookId);
         await axiosInstance.post('/books/add-liked-book', {bookId});
@@ -116,7 +115,6 @@ export default function IndividualBook() {
       setIsLiked(!isLiked);
     } catch (error) {
       console.error('Error toggling like:', error);
-      
     }
   };
 
@@ -148,11 +146,11 @@ export default function IndividualBook() {
         return (
           <TouchableOpacity onPress={handleBorrow} style={styles.borrowButton}>
             <LinearGradient
-              colors={['#f7605e', '#e44243']}
+              colors={['#4e4890', '#8a4ea3']} // Updated colors array
               start={{x: 0, y: 0}}
               end={{x: 1, y: 0}}
               style={styles.linearGradient}>
-              <Text style={styles.borrowText}>Borrow</Text>
+              <Text style={styles.borrowText}>Request</Text>
             </LinearGradient>
           </TouchableOpacity>
         );
@@ -174,13 +172,14 @@ export default function IndividualBook() {
     } else if ('confirmBorrow' in book) {
       return (
         <TouchableOpacity
-          style={[styles.requestedButton, {backgroundColor: '#cccccc'}]}>
+          style={[styles.requestedButton]}
+          onPress={handleBorrow}>
           <LinearGradient
-            colors={['#bdbdbd', '#9e9e9e']}
+            colors={['#f7605e', '#e44243']} 
             start={{x: 0, y: 0}}
             end={{x: 1, y: 0}}
             style={styles.linearGradient}>
-            <Text style={styles.borrowText}>Requested</Text>
+            <Text style={styles.borrowText}>Borrow</Text>
           </LinearGradient>
         </TouchableOpacity>
       );
@@ -679,10 +678,6 @@ const styles = StyleSheet.create({
     flex: 1,
     marginRight: 10,
     marginBottom: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderRadius: 20,
-    padding: 12,
   },
   borrowedButton: {
     flex: 1,
@@ -690,4 +685,3 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
 });
-

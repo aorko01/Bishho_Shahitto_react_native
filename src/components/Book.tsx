@@ -65,7 +65,7 @@ export default function Book({book, onBookBorrowed}) {
     } else if (book.confirmBorrow === true) {
       return (
         <TouchableOpacity
-          style={[styles.borrowButton, styles.borrowButtonActive]}
+          style={[styles.borrowButton]}
           onPress={() => setQrModalVisible(true)}>
           <Text style={styles.buttonText}>Borrow</Text>
         </TouchableOpacity>
@@ -159,11 +159,11 @@ export default function Book({book, onBookBorrowed}) {
         </View>
         <View style={styles.description}>
           <Text style={{color: 'white', fontSize: 20}}>{book.title}</Text>
-          <Text style={{fontSize: 15}}>{book.author}</Text>
-          <Text style={{fontSize: 15, marginTop: 30}}>
+          <Text style={{fontSize: 15,color: '#565968'}}>{book.author}</Text>
+          <Text style={{fontSize: 15, marginTop: 30,color: '#565968'}}>
             Rating: {book.totalRating}
           </Text>
-          <Text style={{fontSize: 15, marginTop: 10}}>
+          <Text style={{fontSize: 15, marginTop: 10,color: '#565968'}}>
             Page Count: {book.pageCount}
           </Text>
         </View>
@@ -333,16 +333,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   borrowButton: {
-    backgroundColor: '#009688',
+    backgroundColor: '#e44243',
     paddingVertical: 10,
-    paddingHorizontal: 20,
+    paddingHorizontal: 22,
     borderRadius: 5,
   },
   borrowButtonActive: {
     backgroundColor: '#4e4890',
   },
   borrowButtonInactive: {
-    backgroundColor: '#757575',
+    backgroundColor: '#fb8c00',
   },
   buttonText: {
     color: 'white',
@@ -356,7 +356,7 @@ const styles = StyleSheet.create({
   returnButton: {
     backgroundColor: '#0083ce',
     paddingVertical: 10,
-    paddingHorizontal: 30,
+    paddingHorizontal: 25,
     borderRadius: 5,
     width: '100%', // Make the button full width
     marginBottom: 20, // Space between the two buttons
