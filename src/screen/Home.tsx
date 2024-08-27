@@ -193,26 +193,30 @@ export default function Home() {
           </ScrollView>
         </View>
 
-        {/* Section 3: Pick from Popular Genre */}
+        {/* Section 2: Pick from Popular Genre */}
         <View style={styles.sectionContainer3}>
           <View style={styles.TrendingContainer}>
             <Text style={styles.Heading}>Pick from Popular Genre</Text>
           </View>
-          <ScrollView horizontal={true} style={styles.horizontalScroll}>
+          <ScrollView horizontal={true} style={styles.horizontalScroll1}>
             {genres.map((genre, idx) => (
-              <View key={idx} style={styles.iconContainer}>
+              <TouchableOpacity
+                key={idx}
+                style={styles.iconContainer}
+                onPress={() => navigation.navigate('GenreScreen', {genre})} // Navigate to GenreScreen with genre as a parameter
+              >
                 <Icon
                   name={GenreIcons[genre] || defaultIcon}
                   size={120}
                   color="white"
                 />
                 <Text style={styles.genreText}>{genre}</Text>
-              </View>
+              </TouchableOpacity>
             ))}
           </ScrollView>
         </View>
 
-        {/* Section 2: Requested */}
+        {/* Section 3: Requested */}
         <View style={styles.sectionContainer2}>
           <View style={styles.TrendingContainer}>
             <Text style={styles.Heading}>Requested Books</Text>
@@ -365,6 +369,7 @@ const styles = StyleSheet.create({
   horizontalScroll: {
     paddingLeft: 15,
   },
+  horizontalScroll1: {},
   bookCover: {
     width: 100,
     height: 150,
