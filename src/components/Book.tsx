@@ -87,7 +87,6 @@ export default function Book({book, onBookBorrowed}) {
       );
     }
   };
-  
 
   const handleDaySelection = days => {
     if (days >= 1 && days <= 30) {
@@ -151,7 +150,9 @@ export default function Book({book, onBookBorrowed}) {
             source={{uri: book.coverImage}}
             style={[
               styles.bookCover,
-              book.toReturn === false || book.canBeBorrowed === false || book.confirmBorrow === false
+              book.toReturn === false ||
+              book.canBeBorrowed === false ||
+              book.confirmBorrow === false
                 ? styles.dimmedImage
                 : null,
             ]}
@@ -159,11 +160,11 @@ export default function Book({book, onBookBorrowed}) {
         </View>
         <View style={styles.description}>
           <Text style={{color: 'white', fontSize: 20}}>{book.title}</Text>
-          <Text style={{fontSize: 15,color: '#565968'}}>{book.author}</Text>
-          <Text style={{fontSize: 15, marginTop: 30,color: '#565968'}}>
+          <Text style={{fontSize: 15, color: '#565968'}}>{book.author}</Text>
+          <Text style={{fontSize: 15, marginTop: 30, color: '#565968'}}>
             Rating: {book.totalRating}
           </Text>
-          <Text style={{fontSize: 15, marginTop: 10,color: '#565968'}}>
+          <Text style={{fontSize: 15, marginTop: 10, color: '#565968'}}>
             Page Count: {book.pageCount}
           </Text>
         </View>
@@ -441,6 +442,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: 'white',
     alignItems: 'center',
-    marginBottom: 20,  // Add margin if needed
+    marginBottom: 20, // Add margin if needed
   },
 });

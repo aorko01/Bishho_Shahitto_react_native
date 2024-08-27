@@ -8,11 +8,15 @@ import {
   View,
   TouchableOpacity,
   TextInput,
+  Modal,
+  TouchableWithoutFeedback
 } from 'react-native';
 import {useNavigation, useRoute} from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import LinearGradient from 'react-native-linear-gradient';
 import axiosInstance from '../utils/axiosInstance.js';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import QRCode from 'react-native-qrcode-svg';
 
 // Dummy data for user ratings
 const userRatings = [
@@ -52,16 +56,20 @@ export default function IndividualBook() {
   const navigation = useNavigation();
   const route = useRoute();
   const {book} = route.params;
+  const[canBeBorrowed, setCanBeBorrowed] = useState(book?.canBeBorrowed);
+  const[confirmBorrow, setConfirmBorrow] = useState(book?.confirmBorrow);
 
   const [reviewText, setReviewText] = useState('');
   const [reviews, setReviews] = useState([]);
   const [visibleReviews, setVisibleReviews] = useState(3);
   const [isExpanded, setIsExpanded] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
-
+  const [selectedDays, setSelectedDays] = useState(7);
   const coverImage = book.coverImage; // Assuming coverImage is a field in your book object
   const bookId = book._id;
-  console.log('Book ID:', bookId);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [qrModalVisible, setQrModalVisible] = useState(false);
+  const [qrPayload, setQrPayload] = useState('');
 
   useEffect(() => {
     fetchUserReviews();
@@ -97,8 +105,44 @@ export default function IndividualBook() {
     'https://m.media-amazon.com/images/I/81FPzmB5fgL._AC_UF1000,1000_QL80_.jpg',
   ];
 
-  const handleBorrow = () => {
-    console.log(`Borrowing book: ${book.title}`);
+  const handleBorrow = async () => {
+    try {
+      // Fetch the access token from AsyncStorage
+      const accessToken = await AsyncStorage.getItem('accessToken');
+
+      // Generate the QR code payload
+      const payload = JSON.stringify({
+        bookId: bookId,
+        accessToken: accessToken,
+      });
+
+      // Set the payload and show the modal
+      setQrPayload(payload);
+      setQrModalVisible(true);
+
+      console.log(`Borrowing book: ${book.title}`);
+    } catch (error) {
+      console.error('Error handling borrow:', error);
+    }
+  };
+
+
+  const handleConfirmBorrow = async () => {
+    console.log("borrowing request")
+    try {
+      const response = await axiosInstance.post('/books/request-borrow', {
+        bookId: book._id,
+        daysToBorrow: selectedDays,
+      });
+      console.log(`Borrow request for ${selectedDays} days.`);
+      console.log(response.data);
+      setCanBeBorrowed(undefined);
+      setConfirmBorrow(true);
+      setModalVisible(false);
+    } catch (error) {
+      console.error('Error borrowing the book:', error);
+      // Optionally handle the error, e.g., show an alert
+    }
   };
 
   const handleBookmark = async () => {
@@ -141,10 +185,12 @@ export default function IndividualBook() {
   };
 
   const renderActionButton = () => {
-    if ('canBeBorrowed' in book) {
-      if (book.canBeBorrowed) {
+    if (canBeBorrowed !== undefined) {
+      if (canBeBorrowed) {
         return (
-          <TouchableOpacity onPress={handleBorrow} style={styles.borrowButton}>
+          <TouchableOpacity style={styles.borrowButton}
+          onPress={() => setModalVisible(true)}
+          >
             <LinearGradient
               colors={['#4e4890', '#8a4ea3']} // Updated colors array
               start={{x: 0, y: 0}}
@@ -169,13 +215,13 @@ export default function IndividualBook() {
           </TouchableOpacity>
         );
       }
-    } else if ('confirmBorrow' in book) {
+    } else if (confirmBorrow!==undefined && confirmBorrow) {
       return (
         <TouchableOpacity
           style={[styles.requestedButton]}
           onPress={handleBorrow}>
           <LinearGradient
-            colors={['#f7605e', '#e44243']} 
+            colors={['#f7605e', '#e44243']}
             start={{x: 0, y: 0}}
             end={{x: 1, y: 0}}
             style={styles.linearGradient}>
@@ -384,6 +430,7 @@ export default function IndividualBook() {
             </View>
           </View>
         </View>
+
         <View style={styles.bookDescription}>
           <Text style={styles.descriptionTitle}>Synopsis</Text>
           <Text style={styles.descriptionText}>{book.description}</Text>
@@ -407,6 +454,71 @@ export default function IndividualBook() {
 
         <View style={styles.reviewSection}>{renderUserReviews()}</View>
       </ScrollView>
+
+      <Modal
+        transparent={true}
+        visible={qrModalVisible}
+        animationType="slide"
+        onRequestClose={() => setQrModalVisible(false)}>
+        <TouchableWithoutFeedback onPress={() => setQrModalVisible(false)}>
+          <View style={styles.modalOverlay}>
+            <TouchableWithoutFeedback onPress={() => {}}>
+              <View style={styles.modalContent}>
+                <Text style={styles.modalTitle}>Scan QR to Borrow</Text>
+                <View style={styles.qrCodeContainer}>
+                  <QRCode value={qrPayload} size={200} />
+                </View>
+                <TouchableOpacity
+                  style={styles.confirmButton}
+                  onPress={() => setQrModalVisible(false)}>
+                  <Text style={styles.confirmButtonText}>Close</Text>
+                </TouchableOpacity>
+              </View>
+            </TouchableWithoutFeedback>
+          </View>
+        </TouchableWithoutFeedback>
+      </Modal>
+
+      <Modal
+          transparent={true}
+          visible={modalVisible}
+          animationType="slide"
+          onRequestClose={() => setModalVisible(false)}>
+          <TouchableWithoutFeedback onPress={() => setModalVisible(false)}>
+            <View style={styles.modalOverlay}>
+              <TouchableWithoutFeedback onPress={() => {}}>
+                <View style={styles.modalContent}>
+                  <Text style={styles.modalTitle}>Borrow for</Text>
+                  <View style={styles.daySelector}>
+                    <TouchableOpacity
+                      style={styles.dayAdjustButton}
+                      onPress={() => handleDaySelection(selectedDays - 1)}>
+                      <Text style={styles.adjustButtonText}>-</Text>
+                    </TouchableOpacity>
+                    <TextInput
+                      style={styles.dayInput}
+                      value={String(selectedDays)}
+                      onChangeText={text => handleDaySelection(Number(text))}
+                      keyboardType="number-pad"
+                    />
+                    <TouchableOpacity
+                      style={styles.dayAdjustButton}
+                      onPress={() => handleDaySelection(selectedDays + 1)}>
+                      <Text style={styles.adjustButtonText}>+</Text>
+                    </TouchableOpacity>
+                  </View>
+                  <Text style={styles.modalText}>days</Text>
+                  <TouchableOpacity
+                    style={styles.confirmButton}
+                    onPress={handleConfirmBorrow}>
+                    <Text style={styles.confirmButtonText}>Confirm</Text>
+                  </TouchableOpacity>
+                </View>
+              </TouchableWithoutFeedback>
+            </View>
+          </TouchableWithoutFeedback>
+        </Modal>
+      
     </SafeAreaView>
   );
 }
@@ -683,5 +795,107 @@ const styles = StyleSheet.create({
     flex: 1,
     marginRight: 10,
     marginBottom: 10,
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalView: {
+    width: 300,
+    backgroundColor: 'white',
+    borderRadius: 20,
+    padding: 20,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  modalText: {
+    marginBottom: 15,
+    textAlign: 'center',
+    fontSize: 18,
+    color: '#000',
+  },
+  closeButton: {
+    backgroundColor: '#2196F3',
+    borderRadius: 10,
+    padding: 10,
+    elevation: 2,
+  },
+  closeButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.7)',
+  },
+  modalContent: {
+    width: 300,
+    backgroundColor: '#1a1b2b',
+    borderRadius: 10,
+    padding: 20,
+    alignItems: 'center',
+  },
+  modalTitle: {
+    fontSize: 20,
+    color: 'white',
+    marginBottom: 20,
+  },
+  modalText: {
+    color: 'white',
+    fontSize: 16,
+    textAlign: 'center',
+    marginVertical: 10,
+  },
+  daySelector: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  dayAdjustButton: {
+    backgroundColor: '#4e4890',
+    padding: 10,
+    borderRadius: 5,
+    marginHorizontal: 10,
+  },
+  adjustButtonText: {
+    color: 'white',
+    fontSize: 20,
+  },
+  dayInput: {
+    backgroundColor: '#3a3c51',
+    color: 'white',
+    fontSize: 16,
+    padding: 10,
+    borderRadius: 5,
+    textAlign: 'center',
+    width: 50,
+  },
+  confirmButton: {
+    marginTop: 20,
+    backgroundColor: '#4e4890',
+    padding: 15,
+    borderRadius: 5,
+  },
+  confirmButtonText: {
+    color: 'white',
+    fontSize: 16,
+  },
+  qrCodeContainer: {
+    justifyContent: 'center',
+    backgroundColor: 'white',
+    alignItems: 'center',
+    marginBottom: 20, // Add margin if needed
   },
 });
