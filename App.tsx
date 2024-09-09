@@ -13,6 +13,7 @@ import EditProfile from './src/screen/EditProfile';
 import Notifications from './src/screen/Notifications';
 import LoadingScreen from './src/screen/LoadingScreen';
 import GenreScreen from './src/screen/GenreScreen';
+import RequestHome from './src/screen/RequestHome';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { CommonActions } from '@react-navigation/native';
@@ -134,6 +135,7 @@ function App() {
         <Stack.Screen name="EditProfile" component={EditProfile} />
         <Stack.Screen name="Notifications" component={Notifications} />
         <Stack.Screen name="GenreScreen" component={GenreScreen} />
+        <Stack.Screen name="RequestHome" component={RequestHome} />
       </Stack.Navigator>
     </NavigationContainer>
   );

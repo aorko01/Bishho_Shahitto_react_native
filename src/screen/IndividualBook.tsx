@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useCallback} from 'react';
 import {
   Image,
   SafeAreaView,
@@ -11,7 +11,7 @@ import {
   Modal,
   TouchableWithoutFeedback,
 } from 'react-native';
-import {useNavigation, useRoute} from '@react-navigation/native';
+import {useNavigation, useRoute,useFocusEffect} from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import LinearGradient from 'react-native-linear-gradient';
 import axiosInstance from '../utils/axiosInstance.js';
@@ -73,11 +73,13 @@ export default function IndividualBook() {
   const [qrModalVisible, setQrModalVisible] = useState(false);
   const [qrPayload, setQrPayload] = useState('');
 
-  useEffect(() => {
-    fetchSimilarBooks();
-    fetchUserReviews();
-    isthebookLiked();
-  }, [bookId]);
+  useFocusEffect(
+    useCallback(() => {
+      fetchSimilarBooks();
+      isthebookLiked();
+      fetchUserReviews();
+    }, [])
+  );
 
   const fetchSimilarBooks = async () => {
     try {
@@ -180,10 +182,11 @@ export default function IndividualBook() {
     console.log(`Bookmarking book: ${book.title}`);
     try {
       if (isLiked) {
-        console.log(bookId);
+        
+        console.log("removing like");
         await axiosInstance.post('/books/remove-liked-book', {bookId});
       } else {
-        console.log(bookId);
+        console.log("adding like");
         await axiosInstance.post('/books/add-liked-book', {bookId});
         console.log('Book liked');
       }
@@ -470,7 +473,7 @@ export default function IndividualBook() {
                 <Icon
                   name="bookmark"
                   size={30}
-                  color={isLiked ? '#3a3c51' : '#EBEBEE'} // Bright yellow for liked, white for not liked
+                  color={isLiked ? '#3a3c51' : '#EBEBEE'} 
                 />
               </TouchableOpacity>
             </View>

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   SafeAreaView,
   ScrollView,
@@ -9,8 +9,9 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation,useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import axiosInstance from '../utils/axiosInstance';
 
 export default function Profile() {
   const navigation = useNavigation();
@@ -19,34 +20,38 @@ export default function Profile() {
     email: 'Loading...',
     avatar: 'https://encrypted-tbn2.gstatic.com/images?q=tbn:ANd9GcTP9hneBUzKcWY0lZAnnIP9-rPOWqP9lsVIO5iihMwrKsTcevg2OehToQ3wb-1z3FNIWJ4nWEqdd5AunJjSCdwTFbWgAW5mFSxlRp56Og',
   });
+  const [likedBooks, setLikedBooks] = useState([]);
 
-  useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const userData = await AsyncStorage.getItem('user');
-        if (userData) {
-          setUser(JSON.parse(userData));
-        }
-      } catch (error) {
-        console.error('Failed to load user data:', error);
+  const fetchUserData = async () => {
+    try {
+      const userData = await AsyncStorage.getItem('user');
+      if (userData) {
+        setUser(JSON.parse(userData));
       }
-    };
+    } catch (error) {
+      console.error('Failed to load user data:', error);
+    }
+  };
 
-    fetchUserData();
-  }, []);
+  const fetchLikedBooks = async () => {
+    try {
+      const response = await axiosInstance.get('/users/get-liked-books');
+      if (response.data && response.data.success) {
+        setLikedBooks(response.data.data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch liked books:', error);
+    }
+  };
 
-  const likedBooks = [
-    {
-      id: 1,
-      title: 'Book Title 1',
-      coverImage: 'https://m.media-amazon.com/images/I/81YkqyaFVEL._AC_UF1000,1000_QL80_.jpg',
-    },
-    {
-      id: 2,
-      title: 'Book Title 2',
-      coverImage: 'https://m.media-amazon.com/images/I/81YkqyaFVEL._AC_UF1000,1000_QL80_.jpg',
-    },
-  ];
+  useFocusEffect(
+    useCallback(() => {
+      fetchUserData();
+      fetchLikedBooks();
+    }, [])
+  );
+
+  
 
   const reviews = [
     {
@@ -97,7 +102,7 @@ export default function Profile() {
           <Text style={styles.sectionTitle}>Liked Books</Text>
           <ScrollView horizontal style={styles.horizontalScroll}>
             {likedBooks.map((book) => (
-              <View key={book.id} style={styles.bookItem}>
+              <View key={book._id} style={styles.bookItem}>
                 <Image source={{ uri: book.coverImage }} style={styles.bookCover} />
                 <Text style={styles.bookTitle}>{book.title}</Text>
               </View>

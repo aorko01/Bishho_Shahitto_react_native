@@ -226,7 +226,7 @@ export default function Home() {
             <Text style={styles.Heading}>Requested Books</Text>
             <TouchableOpacity
               onPress={() =>
-                navigation.push('Catagory', {category: 'Top picks'})
+                navigation.push('RequestHome')
               }>
               <Text style={styles.all}>See all</Text>
             </TouchableOpacity>
