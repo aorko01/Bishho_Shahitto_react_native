@@ -9,7 +9,7 @@ import {
   TouchableOpacity,
   TextInput,
   Modal,
-  TouchableWithoutFeedback
+  TouchableWithoutFeedback,
 } from 'react-native';
 import {useNavigation, useRoute} from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -56,9 +56,10 @@ export default function IndividualBook() {
   const navigation = useNavigation();
   const route = useRoute();
   const {book} = route.params;
-  const[canBeBorrowed, setCanBeBorrowed] = useState(book?.canBeBorrowed);
-  const[confirmBorrow, setConfirmBorrow] = useState(book?.confirmBorrow);
-  const[remind, setRemind] = useState(book?.remind);
+  const [canBeBorrowed, setCanBeBorrowed] = useState(book?.canBeBorrowed);
+  const [confirmBorrow, setConfirmBorrow] = useState(book?.confirmBorrow);
+  const [remind, setRemind] = useState(book?.remind);
+  const [SimilarBooks, setSimilarBooks] = useState([]);
 
   const [reviewText, setReviewText] = useState('');
   const [reviews, setReviews] = useState([]);
@@ -73,9 +74,21 @@ export default function IndividualBook() {
   const [qrPayload, setQrPayload] = useState('');
 
   useEffect(() => {
+    fetchSimilarBooks();
     fetchUserReviews();
     isthebookLiked();
   }, [bookId]);
+
+  const fetchSimilarBooks = async () => {
+    try {
+      const response = await axiosInstance.post('/books/get-similar-books', {
+        bookId,
+      });
+      setSimilarBooks(response.data.data);
+    } catch (error) {
+      console.error('Error fetching similar books:', error);
+    }
+  };
 
   const isthebookLiked = async () => {
     try {
@@ -127,9 +140,8 @@ export default function IndividualBook() {
     }
   };
 
-
   const handleConfirmBorrow = async () => {
-    console.log("borrowing request")
+    console.log('borrowing request');
     try {
       const response = await axiosInstance.post('/books/request-borrow', {
         bookId: book._id,
@@ -156,7 +168,7 @@ export default function IndividualBook() {
     } catch (error) {
       console.error('Error adding reminder:', error);
     }
-  }
+  };
 
   const handleDaySelection = days => {
     if (days >= 1 && days <= 30) {
@@ -205,107 +217,90 @@ export default function IndividualBook() {
 
   const renderActionButton = () => {
     if (canBeBorrowed !== undefined) {
-        if (canBeBorrowed) {
-            return (
-                <TouchableOpacity 
-                    style={styles.borrowButton}
-                    onPress={() => setModalVisible(true)}
-                >
-                    <LinearGradient
-                        colors={['#4e4890', '#8a4ea3']} // Gradient colors for active state
-                        start={{x: 0, y: 0}}
-                        end={{x: 1, y: 0}}
-                        style={styles.linearGradient}
-                    >
-                        <Text style={styles.borrowText}>Request</Text>
-                    </LinearGradient>
-                </TouchableOpacity>
-            );
-        } else {
-            if (remind === true) {
-                return (
-                    <TouchableOpacity
-                        style={[styles.remindButton, styles.remindButtonStyle]}
-                        disabled={true} // Make the button non-clickable
-                    >
-                        <LinearGradient
-                            colors={['#c0c0c0', '#a9a9a9']} // Ash color gradient
-                            start={{x: 0, y: 0}}
-                            end={{x: 1, y: 0}}
-                            style={styles.linearGradient}
-                        >
-                            <Text style={styles.borrowText}>Remind</Text>
-                        </LinearGradient>
-                    </TouchableOpacity>
-                );
-            } else {
-                return (
-                    <TouchableOpacity
-                        onPress={handleAddReminder}
-                        style={styles.remindButton}
-                    >
-                        <LinearGradient
-                            colors={['#ffa726', '#fb8c00']} // Gradient colors for remind state
-                            start={{x: 0, y: 0}}
-                            end={{x: 1, y: 0}}
-                            style={styles.linearGradient}
-                        >
-                            <Text style={styles.borrowText}>Remind</Text>
-                        </LinearGradient>
-                    </TouchableOpacity>
-                );
-            }
-        }
-    } else if (confirmBorrow !== undefined && confirmBorrow) {
+      if (canBeBorrowed) {
         return (
+          <TouchableOpacity
+            style={styles.borrowButton}
+            onPress={() => setModalVisible(true)}>
+            <LinearGradient
+              colors={['#4e4890', '#8a4ea3']} // Gradient colors for active state
+              start={{x: 0, y: 0}}
+              end={{x: 1, y: 0}}
+              style={styles.linearGradient}>
+              <Text style={styles.borrowText}>Request</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+        );
+      } else {
+        if (remind === true) {
+          return (
             <TouchableOpacity
-                style={styles.requestedButton}
-                onPress={handleBorrow}
+              style={[styles.remindButton, styles.remindButtonStyle]}
+              disabled={true} // Make the button non-clickable
             >
-                <LinearGradient
-                    colors={['#f7605e', '#e44243']} // Gradient colors for borrowed state
-                    start={{x: 0, y: 0}}
-                    end={{x: 1, y: 0}}
-                    style={styles.linearGradient}
-                >
-                    <Text style={styles.borrowText}>Borrow</Text>
-                </LinearGradient>
+              <LinearGradient
+                colors={['#c0c0c0', '#a9a9a9']} // Ash color gradient
+                start={{x: 0, y: 0}}
+                end={{x: 1, y: 0}}
+                style={styles.linearGradient}>
+                <Text style={styles.borrowText}>Remind</Text>
+              </LinearGradient>
             </TouchableOpacity>
-        );
+          );
+        } else {
+          return (
+            <TouchableOpacity
+              onPress={handleAddReminder}
+              style={styles.remindButton}>
+              <LinearGradient
+                colors={['#ffa726', '#fb8c00']} // Gradient colors for remind state
+                start={{x: 0, y: 0}}
+                end={{x: 1, y: 0}}
+                style={styles.linearGradient}>
+                <Text style={styles.borrowText}>Remind</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          );
+        }
+      }
+    } else if (confirmBorrow !== undefined && confirmBorrow) {
+      return (
+        <TouchableOpacity style={styles.requestedButton} onPress={handleBorrow}>
+          <LinearGradient
+            colors={['#f7605e', '#e44243']} // Gradient colors for borrowed state
+            start={{x: 0, y: 0}}
+            end={{x: 1, y: 0}}
+            style={styles.linearGradient}>
+            <Text style={styles.borrowText}>Borrow</Text>
+          </LinearGradient>
+        </TouchableOpacity>
+      );
     } else if ('toReturn' in book && book.toReturn) {
-        return (
-            <TouchableOpacity 
-                style={styles.borrowedButton}
-            >
-                <LinearGradient
-                    colors={['#bdbdbd', '#9e9e9e']} // Gradient colors for borrowed state
-                    start={{x: 0, y: 0}}
-                    end={{x: 1, y: 0}}
-                    style={styles.linearGradient}
-                >
-                    <Text style={styles.borrowText}>Borrowed</Text>
-                </LinearGradient>
-            </TouchableOpacity>
-        );
+      return (
+        <TouchableOpacity style={styles.borrowedButton}>
+          <LinearGradient
+            colors={['#bdbdbd', '#9e9e9e']} // Gradient colors for borrowed state
+            start={{x: 0, y: 0}}
+            end={{x: 1, y: 0}}
+            style={styles.linearGradient}>
+            <Text style={styles.borrowText}>Borrowed</Text>
+          </LinearGradient>
+        </TouchableOpacity>
+      );
     } else {
-        return (
-            <TouchableOpacity 
-                onPress={handleBorrow} 
-                style={styles.borrowButton}
-            >
-                <LinearGradient
-                    colors={['#f7605e', '#e44243']} // Gradient colors for default state
-                    start={{x: 0, y: 0}}
-                    end={{x: 1, y: 0}}
-                    style={styles.linearGradient}
-                >
-                    <Text style={styles.borrowText}>Borrow</Text>
-                </LinearGradient>
-            </TouchableOpacity>
-        );
+      return (
+        <TouchableOpacity onPress={handleBorrow} style={styles.borrowButton}>
+          <LinearGradient
+            colors={['#f7605e', '#e44243']} // Gradient colors for default state
+            start={{x: 0, y: 0}}
+            end={{x: 1, y: 0}}
+            style={styles.linearGradient}>
+            <Text style={styles.borrowText}>Borrow</Text>
+          </LinearGradient>
+        </TouchableOpacity>
+      );
     }
-};
-
+  };
 
   const renderRatingStars = () => {
     return (
@@ -489,14 +484,15 @@ export default function IndividualBook() {
 
         <View style={styles.sectionContainer2}>
           <View style={styles.TrendingContainer}>
-            <Text style={styles.Heading}>Similar </Text>
-            <TouchableOpacity>
-              <Text style={styles.all}>See all</Text>
-            </TouchableOpacity>
+            <Text style={styles.Heading}>Similar</Text>
           </View>
           <ScrollView horizontal={true} style={styles.horizontalScroll}>
-            {coverImages.map((image, idx) => (
-              <Image key={idx} source={{uri: image}} style={styles.bookCover} />
+            {SimilarBooks.map((book, idx) => (
+              <Image
+                key={idx}
+                source={{uri: book.coverImage}}
+                style={styles.bookCover}
+              />
             ))}
           </ScrollView>
         </View>
@@ -531,45 +527,44 @@ export default function IndividualBook() {
       </Modal>
 
       <Modal
-          transparent={true}
-          visible={modalVisible}
-          animationType="slide"
-          onRequestClose={() => setModalVisible(false)}>
-          <TouchableWithoutFeedback onPress={() => setModalVisible(false)}>
-            <View style={styles.modalOverlay}>
-              <TouchableWithoutFeedback onPress={() => {}}>
-                <View style={styles.modalContent}>
-                  <Text style={styles.modalTitle}>Borrow for</Text>
-                  <View style={styles.daySelector}>
-                    <TouchableOpacity
-                      style={styles.dayAdjustButton}
-                      onPress={() => handleDaySelection(selectedDays - 1)}>
-                      <Text style={styles.adjustButtonText}>-</Text>
-                    </TouchableOpacity>
-                    <TextInput
-                      style={styles.dayInput}
-                      value={String(selectedDays)}
-                      onChangeText={text => handleDaySelection(Number(text))}
-                      keyboardType="number-pad"
-                    />
-                    <TouchableOpacity
-                      style={styles.dayAdjustButton}
-                      onPress={() => handleDaySelection(selectedDays + 1)}>
-                      <Text style={styles.adjustButtonText}>+</Text>
-                    </TouchableOpacity>
-                  </View>
-                  <Text style={styles.modalText}>days</Text>
+        transparent={true}
+        visible={modalVisible}
+        animationType="slide"
+        onRequestClose={() => setModalVisible(false)}>
+        <TouchableWithoutFeedback onPress={() => setModalVisible(false)}>
+          <View style={styles.modalOverlay}>
+            <TouchableWithoutFeedback onPress={() => {}}>
+              <View style={styles.modalContent}>
+                <Text style={styles.modalTitle}>Borrow for</Text>
+                <View style={styles.daySelector}>
                   <TouchableOpacity
-                    style={styles.confirmButton}
-                    onPress={handleConfirmBorrow}>
-                    <Text style={styles.confirmButtonText}>Confirm</Text>
+                    style={styles.dayAdjustButton}
+                    onPress={() => handleDaySelection(selectedDays - 1)}>
+                    <Text style={styles.adjustButtonText}>-</Text>
+                  </TouchableOpacity>
+                  <TextInput
+                    style={styles.dayInput}
+                    value={String(selectedDays)}
+                    onChangeText={text => handleDaySelection(Number(text))}
+                    keyboardType="number-pad"
+                  />
+                  <TouchableOpacity
+                    style={styles.dayAdjustButton}
+                    onPress={() => handleDaySelection(selectedDays + 1)}>
+                    <Text style={styles.adjustButtonText}>+</Text>
                   </TouchableOpacity>
                 </View>
-              </TouchableWithoutFeedback>
-            </View>
-          </TouchableWithoutFeedback>
-        </Modal>
-      
+                <Text style={styles.modalText}>days</Text>
+                <TouchableOpacity
+                  style={styles.confirmButton}
+                  onPress={handleConfirmBorrow}>
+                  <Text style={styles.confirmButtonText}>Confirm</Text>
+                </TouchableOpacity>
+              </View>
+            </TouchableWithoutFeedback>
+          </View>
+        </TouchableWithoutFeedback>
+      </Modal>
     </SafeAreaView>
   );
 }
