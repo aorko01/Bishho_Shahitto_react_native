@@ -136,8 +136,12 @@ export default function Home() {
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView>
-        <NotificationIcon />
-
+      <View style={styles.headerContainer}>
+      <TouchableOpacity onPress={() => navigation.openDrawer()}>
+        <Icon name="menu" size={28} color="#fff" />
+      </TouchableOpacity>
+      <NotificationIcon />
+    </View>
         <Image
           source={{
             uri:
